@@ -1,0 +1,130 @@
+<meta charset="utf-8">
+<title>Guitar Practice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="theme-color" content="#12151c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Guitar Practice">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="stylesheet" href="css/styles.css">
+
+<div id="orientation-guard" class="orientation-guard">
+  <p>Поверни iPad в альбомную ориентацию</p>
+</div>
+
+<div class="app">
+  <nav class="tabs" role="tablist">
+    <button class="tab active" data-screen="metronome" role="tab" aria-selected="true">Метроном</button>
+    <button class="tab" data-screen="caged" role="tab" aria-selected="false">CAGED</button>
+    <button class="tab" data-screen="boxes" role="tab" aria-selected="false">Боксы</button>
+    <button class="tab" data-screen="stopwatch" role="tab" aria-selected="false">Секундомер</button>
+  </nav>
+
+  <main class="screens">
+    <section id="screen-metronome" class="screen active">
+      <div class="metronome">
+        <div class="bpm-display">
+          <span id="bpm-value">100</span>
+          <span class="bpm-label">BPM</span>
+        </div>
+        <input id="bpm-slider" type="range" min="30" max="260" value="100" step="1">
+        <div class="bpm-buttons">
+          <button class="bpm-step" data-delta="-5">-5</button>
+          <button class="bpm-step" data-delta="-1">-1</button>
+          <button class="bpm-step" data-delta="1">+1</button>
+          <button class="bpm-step" data-delta="5">+5</button>
+        </div>
+
+        <div class="meter-row">
+          <label for="time-sig">Размер такта</label>
+          <select id="time-sig">
+            <option value="2">2/4</option>
+            <option value="3">3/4</option>
+            <option value="4" selected>4/4</option>
+            <option value="6">6/8</option>
+          </select>
+          <label class="accent-toggle">
+            <input type="checkbox" id="accent-toggle" checked>
+            Акцент на 1-ю долю
+          </label>
+        </div>
+
+        <div class="beat-lights" id="beat-lights"></div>
+
+        <button id="metronome-toggle" class="big-toggle">Старт</button>
+      </div>
+    </section>
+
+    <section id="screen-caged" class="screen">
+      <div class="progression-panel">
+        <svg id="circle-of-fifths" class="circle-of-fifths" viewBox="0 0 260 260"></svg>
+        <div>
+          <div class="chord-progression" id="chord-progression"></div>
+        </div>
+      </div>
+      <div class="caged-picker">
+        <div class="shape-tabs" id="caged-shape-tabs"></div>
+      </div>
+      <div class="fretboard-wrap">
+        <svg id="caged-fretboard" class="fretboard-svg" viewBox="0 0 1000 420"></svg>
+      </div>
+      <div class="legend">
+        <span class="legend-item"><i class="dot major"></i>Тоника мажора</span>
+        <span class="legend-item"><i class="dot minor"></i>Тоника минора (относительный минор)</span>
+        <span class="legend-item"><i class="dot third"></i>3-я ступень</span>
+        <span class="legend-item"><i class="dot fifth"></i>5-я ступень</span>
+        <span class="legend-item"><i class="dot other"></i>Остальные ступени</span>
+      </div>
+    </section>
+
+    <section id="screen-boxes" class="screen">
+      <div class="box-picker" id="box-picker"></div>
+      <div class="boxes-layout">
+        <div class="fretboard-wrap">
+          <svg id="box-fretboard" class="fretboard-svg" viewBox="0 0 1000 420"></svg>
+          <div class="legend">
+            <span class="legend-item"><i class="dot major"></i>Тоника мажора</span>
+            <span class="legend-item"><i class="dot minor"></i>Тоника минора</span>
+            <span class="legend-item"><i class="dot other"></i>Остальные ступени</span>
+          </div>
+        </div>
+        <aside class="sequence-panel">
+          <label for="sequence-select">Секвенция</label>
+          <select id="sequence-select"></select>
+          <div id="sequence-view" class="sequence-view"></div>
+        </aside>
+      </div>
+    </section>
+
+    <section id="screen-stopwatch" class="screen">
+      <div class="stopwatch">
+        <div class="stopwatch-display" id="stopwatch-display">00:00</div>
+        <div class="stopwatch-buttons">
+          <button id="stopwatch-toggle" class="big-toggle">Старт</button>
+          <button id="stopwatch-reset" class="big-secondary">Сброс</button>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="js/theory.js"></script>
+<script src="js/data/caged.js"></script>
+<script src="js/data/boxes.js"></script>
+<script src="js/data/sequences.js"></script>
+<script src="js/fretboard.js"></script>
+<script src="js/circle-of-fifths.js"></script>
+<script src="js/metronome.js"></script>
+<script src="js/stopwatch.js"></script>
+<script src="js/caged-screen.js"></script>
+<script src="js/boxes-screen.js"></script>
+<script src="js/app.js"></script>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("service-worker.js");
+    });
+  }
+</script>
