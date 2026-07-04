@@ -48,13 +48,16 @@
     var fretCount = opts.fretCount || 5;
     var notes = opts.notes || [];
     var muted = opts.muted || [];
+    var compact = !!opts.compact;
 
-    var marginLeft = 70;
-    var marginRight = 40;
-    var marginTop = 40;
-    var marginBottom = 20;
-    var width = 1000;
-    var height = 420;
+    var width = opts.width || 1000;
+    var height = opts.height || 420;
+    var marginLeft = compact ? 40 : 70;
+    var marginRight = compact ? 16 : 40;
+    var marginTop = compact ? 26 : 40;
+    var marginBottom = compact ? 26 : 20;
+
+    svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 
     var boardWidth = width - marginLeft - marginRight;
     var boardHeight = height - marginTop - marginBottom;
@@ -69,6 +72,10 @@
       return marginTop + (stringNum - 1) * stringGap;
     }
 
+    var stringFontSize = compact ? 11 : 16;
+    var fretFontSize = compact ? 10 : 14;
+    var titleFontSize = compact ? 15 : 22;
+
     // strings (horizontal lines)
     for (var s = 1; s <= strings; s++) {
       var y = yOfString(s);
@@ -77,14 +84,14 @@
         stroke: "#cbd3e1", "stroke-width": s === 1 || s === strings ? 2 : 1.4
       }));
       var label = el("text", {
-        x: marginLeft - 20, y: y + 5, fill: "#8b93a7", "font-size": 16, "text-anchor": "middle"
+        x: marginLeft - (compact ? 12 : 20), y: y + 5, fill: "#8b93a7", "font-size": stringFontSize, "text-anchor": "middle"
       });
       label.textContent = String(s);
       svg.appendChild(label);
 
       if (muted.indexOf(s) !== -1) {
         var xEl = el("text", {
-          x: marginLeft - 45, y: y + 6, fill: "#8b93a7", "font-size": 16, "text-anchor": "middle"
+          x: marginLeft - (compact ? 28 : 45), y: y + 6, fill: "#8b93a7", "font-size": stringFontSize, "text-anchor": "middle"
         });
         xEl.textContent = "X";
         svg.appendChild(xEl);
@@ -106,7 +113,7 @@
       var absFret = fretStart + fn;
       var fx = marginLeft + (fn - 0.5) * fretW;
       var flabel = el("text", {
-        x: fx, y: marginTop + boardHeight + 22, fill: "#8b93a7", "font-size": 14, "text-anchor": "middle"
+        x: fx, y: marginTop + boardHeight + (compact ? 18 : 22), fill: "#8b93a7", "font-size": fretFontSize, "text-anchor": "middle"
       });
       flabel.textContent = String(absFret);
       svg.appendChild(flabel);
@@ -114,7 +121,7 @@
 
     if (opts.title) {
       var titleEl = el("text", {
-        x: marginLeft, y: 22, fill: "#eef1f7", "font-size": 22, "font-weight": 700
+        x: marginLeft, y: compact ? 11 : 22, fill: "#eef1f7", "font-size": titleFontSize, "font-weight": 700
       });
       titleEl.textContent = opts.title;
       svg.appendChild(titleEl);

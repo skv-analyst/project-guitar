@@ -252,7 +252,7 @@ button {
 
 /* Fretboard / CAGED / Boxes */
 
-.caged-picker, .box-picker {
+.box-picker {
   display: flex;
   gap: 0.6rem;
   flex-wrap: wrap;
@@ -261,12 +261,7 @@ button {
   width: 100%;
 }
 
-.shape-tabs, .box-picker {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.shape-tab, .box-tab {
+.box-tab {
   background: var(--panel-2);
   border: 1px solid var(--border);
   color: var(--text);
@@ -275,25 +270,8 @@ button {
   font-size: 0.95rem;
 }
 
-.shape-tab.active, .box-tab.active {
+.box-tab.active {
   background: var(--accent);
-}
-
-.root-picker {
-  color: var(--muted);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  margin-left: auto;
-}
-
-.root-picker select {
-  background: var(--panel-2);
-  color: var(--text);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.4rem 0.6rem;
-  font-size: 1rem;
 }
 
 .fretboard-wrap {
@@ -304,6 +282,7 @@ button {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1.4rem;
 }
 
 .fretboard-svg {
@@ -406,20 +385,48 @@ button {
   letter-spacing: normal;
 }
 
+/* CAGED: 5 shapes side by side, small, at the top */
+
+.caged-shapes-row {
+  display: flex;
+  gap: 0.7rem;
+  width: 100%;
+  justify-content: center;
+  flex-wrap: nowrap;
+}
+
+.caged-shape-card {
+  flex: 1 1 0;
+  max-width: 200px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0.4rem;
+  display: flex;
+}
+
+.caged-shape-card svg {
+  width: 100%;
+  height: auto;
+}
+
 /* Chord progression (circle of fifths) */
 
 .progression-panel {
   display: flex;
-  gap: 1.5rem;
-  align-items: center;
+  gap: 1.8rem;
+  align-items: flex-start;
   width: 100%;
   justify-content: center;
   flex-wrap: wrap;
+  flex: 1;
+  min-height: 0;
 }
 
 .circle-of-fifths {
-  width: 260px;
-  height: 260px;
+  width: 240px;
+  height: 240px;
+  flex-shrink: 0;
 }
 
 .circle-of-fifths .segment {
@@ -443,6 +450,40 @@ button {
   fill: var(--accent);
 }
 
+.task-panel {
+  flex: 1;
+  min-width: 320px;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.task-header {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.task-header select {
+  flex: 1;
+  background: var(--panel-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.6rem;
+  font-size: 1rem;
+}
+
+.scale-steps-header {
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+}
+
 .chord-progression {
   display: flex;
   gap: 0.6rem;
@@ -451,11 +492,25 @@ button {
   font-weight: 700;
 }
 
+.chord-progression.task {
+  font-size: 1.7rem;
+}
+
 .chord-chip {
   background: var(--panel-2);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.5rem 0.9rem;
+}
+
+.chord-progression.task .chord-chip {
+  background: var(--accent);
+  color: #fff;
+  padding: 0.7rem 1.1rem;
+}
+
+.chord-progression.task .chord-chip .roman {
+  color: rgba(255, 255, 255, 0.8);
 }
 
 .chord-chip .roman {

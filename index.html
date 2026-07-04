@@ -58,24 +58,27 @@
     </section>
 
     <section id="screen-caged" class="screen">
-      <div class="progression-panel">
-        <svg id="circle-of-fifths" class="circle-of-fifths" viewBox="0 0 260 260"></svg>
-        <div>
-          <div class="chord-progression" id="chord-progression"></div>
-        </div>
-      </div>
-      <div class="caged-picker">
-        <div class="shape-tabs" id="caged-shape-tabs"></div>
-      </div>
-      <div class="fretboard-wrap">
-        <svg id="caged-fretboard" class="fretboard-svg" viewBox="0 0 1000 420"></svg>
-      </div>
+      <div class="caged-shapes-row" id="caged-shapes-row"></div>
+
       <div class="legend">
-        <span class="legend-item"><i class="dot major"></i>Тоника мажора</span>
-        <span class="legend-item"><i class="dot minor"></i>Тоника минора (относительный минор)</span>
+        <span class="legend-item"><i class="dot major"></i>Тоника</span>
         <span class="legend-item"><i class="dot third"></i>3-я ступень</span>
         <span class="legend-item"><i class="dot fifth"></i>5-я ступень</span>
-        <span class="legend-item"><i class="dot other"></i>Остальные ступени</span>
+      </div>
+
+      <div class="progression-panel">
+        <svg id="circle-of-fifths" class="circle-of-fifths" viewBox="0 0 260 260"></svg>
+
+        <div class="task-panel">
+          <div class="task-header">
+            <span>Задание</span>
+            <select id="progression-select"></select>
+          </div>
+          <div class="chord-progression task" id="task-progression"></div>
+
+          <div class="scale-steps-header">Ступени гаммы</div>
+          <div class="chord-progression" id="chord-progression"></div>
+        </div>
       </div>
     </section>
 
@@ -83,12 +86,12 @@
       <div class="box-picker" id="box-picker"></div>
       <div class="boxes-layout">
         <div class="fretboard-wrap">
-          <svg id="box-fretboard" class="fretboard-svg" viewBox="0 0 1000 420"></svg>
           <div class="legend">
             <span class="legend-item"><i class="dot major"></i>Тоника мажора</span>
             <span class="legend-item"><i class="dot minor"></i>Тоника минора</span>
             <span class="legend-item"><i class="dot other"></i>Остальные ступени</span>
           </div>
+          <svg id="box-fretboard" class="fretboard-svg" viewBox="0 0 1000 420"></svg>
         </div>
         <aside class="sequence-panel">
           <label for="sequence-select">Секвенция</label>

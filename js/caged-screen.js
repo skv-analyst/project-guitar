@@ -1,53 +1,87 @@
 /*
- * Экран CAGED: табы форм (C A G E D) + квинтовый круг для выбора тональности.
- * Транспонизация формы = баррэ-сдвиг (offset = target - openRootPc), см. бриф
- * про табличную/детерминированную транспонизацию — здесь тот же принцип,
- * применённый к аппликатуре, а не к аккордам прогрессии.
+ * Экран CAGED.
+ *
+ * Сами формы (C A G E D) — фиксированная референсная аппликатура, она не
+ * зависит от тональности (баррэ передвигаешь по грифу сам), поэтому все 5
+ * рисуются один раз, рядом, в открытой позиции.
+ *
+ * Квинтовый круг тут работает иначе: клик по тональности не перерисовывает
+ * гриф, а генерирует "задание" — короткую (4 ступени) последовательность
+ * аккордов в этой тональности из набора известных классических прогрессий,
+ * плюс полную лесенку ступеней гаммы для справки. И то, и другое — табличная
+ * транспонизация из js/theory.js, не выдумывание аккордов на глаз.
  */
 (function () {
   "use strict";
 
-  var shapeTabsEl = document.getElementById("caged-shape-tabs");
-  var svg = document.getElementById("caged-fretboard");
+  var shapesRowEl = document.getElementById("caged-shapes-row");
   var circleSvg = document.getElementById("circle-of-fifths");
-  var progressionEl = document.getElementById("chord-progression");
+  var progressionSelect = document.getElementById("progression-select");
+  var taskProgressionEl = document.getElementById("task-progression");
+  var scaleStepsEl = document.getElementById("chord-progression");
 
-  var state = {
-    shapeId: "C",
-    rootPc: 0,
-    mode: "major",
-    useFlats: false
-  };
+  // Классические прогрессии, заданные ступенями гаммы (1-based индекс в
+  // диатонической лесенке) — общеизвестные, устоявшиеся схемы, а не наш выбор.
+  var MAJOR_PROGRESSIONS = [
+    { id: "I-V-vi-IV", label: "I – V – vi – IV (поп-квадрат)", degrees: [1, 5, 6, 4] },
+    { id: "I-vi-IV-V", label: "I – vi – IV – V (пятидесятые)", degrees: [1, 6, 4, 5] },
+    { id: "vi-IV-I-V", label: "vi – IV – I – V", degrees: [6, 4, 1, 5] },
+    { id: "ii-V-I-vi", label: "ii – V – I – vi", degrees: [2, 5, 1, 6] }
+  ];
 
-  function transposeShape(shape, targetPc) {
-    var offset = Theory.pcOf(targetPc - shape.openRootPc);
-    var notes = shape.notes.map(function (n) {
-      return { string: n.string, fret: n.fret + offset, role: n.role };
-    });
-    var maxOriginal = Math.max.apply(null, shape.notes.map(function (n) { return n.fret; }));
-    var fretStart = Math.max(0, offset - 1);
-    var fretCount = Math.max(4, maxOriginal + offset - fretStart);
-    return { notes: notes, muted: shape.muted, fretStart: fretStart, fretCount: fretCount, offset: offset };
-  }
+  var MINOR_PROGRESSIONS = [
+    { id: "i-VI-III-VII", label: "i – VI – III – VII", degrees: [1, 6, 3, 7] },
+    { id: "i-iv-v-i", label: "i – iv – v – i", degrees: [1, 4, 5, 1] },
+    { id: "i-VII-VI-VII", label: "i – VII – VI – VII", degrees: [1, 7, 6, 7] }
+  ];
 
-  function renderShapeTabs() {
-    shapeTabsEl.innerHTML = "";
+  var state = { rootPc: 0, mode: "major", useFlats: false, progressionId: MAJOR_PROGRESSIONS[0].id };
+
+  function renderShapes() {
+    shapesRowEl.innerHTML = "";
     CagedData.shapes.forEach(function (shape) {
-      var btn = document.createElement("button");
-      btn.className = "shape-tab" + (shape.id === state.shapeId ? " active" : "");
-      btn.textContent = shape.title;
-      btn.addEventListener("click", function () {
-        state.shapeId = shape.id;
-        renderShapeTabs();
-        renderFretboard();
+      var card = document.createElement("div");
+      card.className = "caged-shape-card";
+      var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+      card.appendChild(svg);
+      shapesRowEl.appendChild(card);
+
+      var maxFret = Math.max.apply(null, shape.notes.map(function (n) { return n.fret; }));
+      Fretboard.render(svg, {
+        compact: true,
+        width: 420,
+        height: 320,
+        strings: 6,
+        fretStart: 0,
+        fretCount: Math.max(4, maxFret),
+        notes: shape.notes,
+        muted: shape.muted,
+        title: "Форма " + shape.id
       });
-      shapeTabsEl.appendChild(btn);
     });
   }
 
-  function renderProgression() {
-    var chords = Theory.diatonicChords(state.rootPc, state.mode, state.useFlats);
-    progressionEl.innerHTML = "";
+  function currentProgressions() {
+    return state.mode === "minor" ? MINOR_PROGRESSIONS : MAJOR_PROGRESSIONS;
+  }
+
+  function renderProgressionOptions() {
+    var list = currentProgressions();
+    progressionSelect.innerHTML = "";
+    list.forEach(function (p) {
+      var opt = document.createElement("option");
+      opt.value = p.id;
+      opt.textContent = p.label;
+      progressionSelect.appendChild(opt);
+    });
+    if (!list.some(function (p) { return p.id === state.progressionId; })) {
+      state.progressionId = list[0].id;
+    }
+    progressionSelect.value = state.progressionId;
+  }
+
+  function chipsFor(container, chords, big) {
+    container.innerHTML = "";
     chords.forEach(function (chord) {
       var chip = document.createElement("div");
       chip.className = "chord-chip";
@@ -56,22 +90,21 @@
       roman.textContent = chord.roman;
       chip.appendChild(roman);
       chip.appendChild(document.createTextNode(chord.name));
-      progressionEl.appendChild(chip);
+      container.appendChild(chip);
     });
   }
 
-  function renderFretboard() {
-    var shape = CagedData.shapes.filter(function (s) { return s.id === state.shapeId; })[0];
-    var transposed = transposeShape(shape, state.rootPc);
-    var chordName = Theory.noteName(state.rootPc, state.useFlats);
-    Fretboard.render(svg, {
-      strings: 6,
-      fretStart: transposed.fretStart,
-      fretCount: transposed.fretCount,
-      notes: transposed.notes,
-      muted: transposed.muted,
-      title: "Форма " + shape.id + " → аккорд " + chordName + " (мажор)"
-    });
+  function renderTask() {
+    var list = currentProgressions();
+    var progression = list.filter(function (p) { return p.id === state.progressionId; })[0] || list[0];
+    var allChords = Theory.diatonicChords(state.rootPc, state.mode, state.useFlats);
+    var taskChords = progression.degrees.map(function (degree) { return allChords[degree - 1]; });
+    chipsFor(taskProgressionEl, taskChords);
+  }
+
+  function renderScaleSteps() {
+    var allChords = Theory.diatonicChords(state.rootPc, state.mode, state.useFlats);
+    chipsFor(scaleStepsEl, allChords);
   }
 
   function selectKey(pc, mode, useFlats) {
@@ -79,11 +112,17 @@
     state.mode = mode;
     state.useFlats = useFlats;
     CircleOfFifths.setSelected(circleSvg, pc, mode);
-    renderProgression();
-    renderFretboard();
+    renderProgressionOptions();
+    renderTask();
+    renderScaleSteps();
   }
 
+  progressionSelect.addEventListener("change", function () {
+    state.progressionId = progressionSelect.value;
+    renderTask();
+  });
+
   CircleOfFifths.render(circleSvg, selectKey);
-  renderShapeTabs();
+  renderShapes();
   selectKey(0, "major", false);
 })();

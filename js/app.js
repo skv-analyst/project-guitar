@@ -17,10 +17,8 @@
       screens.forEach(function (s) {
         s.classList.toggle("active", s.id === "screen-" + target);
       });
-
-      if (window.Metronome && target !== "metronome") {
-        window.Metronome.stop();
-      }
+      // Метроном намеренно продолжает играть при переключении вкладок —
+      // так можно уйти на экран боксов/CAGED, не сбивая темп.
     });
   });
 })();
