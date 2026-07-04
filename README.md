@@ -60,6 +60,8 @@ tests/theory.test.js     — unit-тесты транспонизации (node 
 1. Запушить репозиторий на GitHub (ветка `main`).
 2. В настройках репозитория: **Settings → Pages → Source → Deploy from a
    branch**, выбрать ветку `main` и папку `/ (root)`.
+   В репозитории уже есть файл `.nojekyll`, поэтому Pages публикует сайт как
+   статический (без Jekyll-пересборки).
 3. GitHub выдаст адрес вида `https://<username>.github.io/<repo>/`.
    Открывать сайт нужно именно по этому https-адресу (не `file://`) —
    иначе service worker и офлайн-режим не заработают.
