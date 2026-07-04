@@ -49,13 +49,15 @@
     var notes = opts.notes || [];
     var muted = opts.muted || [];
     var compact = !!opts.compact;
+    var showNumbers = opts.showNumbers !== false;
+    var showFretNumbers = opts.showFretNumbers !== undefined ? !!opts.showFretNumbers : showNumbers;
 
     var width = opts.width || 1000;
     var height = opts.height || 420;
-    var marginLeft = compact ? 40 : 70;
-    var marginRight = compact ? 16 : 40;
-    var marginTop = compact ? 26 : 40;
-    var marginBottom = compact ? 26 : 20;
+    var marginLeft = compact ? (showNumbers ? 40 : 58) : 70;
+    var marginRight = compact ? 14 : 40;
+    var marginTop = compact ? 36 : 52;
+    var marginBottom = compact ? (showNumbers ? 26 : 10) : (showFretNumbers ? 20 : 8);
 
     svg.setAttribute("viewBox", "0 0 " + width + " " + height);
 
@@ -83,15 +85,17 @@
         x1: marginLeft, y1: y, x2: marginLeft + boardWidth, y2: y,
         stroke: "#cbd3e1", "stroke-width": s === 1 || s === strings ? 2 : 1.4
       }));
-      var label = el("text", {
-        x: marginLeft - (compact ? 12 : 20), y: y + 5, fill: "#8b93a7", "font-size": stringFontSize, "text-anchor": "middle"
-      });
-      label.textContent = String(s);
-      svg.appendChild(label);
+      if (showNumbers) {
+        var label = el("text", {
+          x: marginLeft - (compact ? 12 : 20), y: y + 5, fill: "#8b93a7", "font-size": stringFontSize, "text-anchor": "middle"
+        });
+        label.textContent = String(s);
+        svg.appendChild(label);
+      }
 
       if (muted.indexOf(s) !== -1) {
         var xEl = el("text", {
-          x: marginLeft - (compact ? 28 : 45), y: y + 6, fill: "#8b93a7", "font-size": stringFontSize, "text-anchor": "middle"
+          x: marginLeft - (compact ? 30 : 45), y: y + 6, fill: "#8b93a7", "font-size": compact ? 15 : 16, "font-weight": 700, "text-anchor": "middle"
         });
         xEl.textContent = "X";
         svg.appendChild(xEl);
@@ -109,14 +113,16 @@
     }
 
     // fret number labels under the board
-    for (var fn = 1; fn <= fretCount; fn++) {
-      var absFret = fretStart + fn;
-      var fx = marginLeft + (fn - 0.5) * fretW;
-      var flabel = el("text", {
-        x: fx, y: marginTop + boardHeight + (compact ? 18 : 22), fill: "#8b93a7", "font-size": fretFontSize, "text-anchor": "middle"
-      });
-      flabel.textContent = String(absFret);
-      svg.appendChild(flabel);
+    if (showFretNumbers) {
+      for (var fn = 1; fn <= fretCount; fn++) {
+        var absFret = fretStart + fn;
+        var fx = marginLeft + (fn - 0.5) * fretW;
+        var flabel = el("text", {
+          x: fx, y: marginTop + boardHeight + (compact ? 18 : 22), fill: "#8b93a7", "font-size": fretFontSize, "text-anchor": "middle"
+        });
+        flabel.textContent = String(absFret);
+        svg.appendChild(flabel);
+      }
     }
 
     if (opts.title) {
@@ -134,21 +140,14 @@
       if (relFret < 0 || relFret > fretCount) return;
 
       var isOpen = note.fret === 0;
-      var cx = isOpen ? marginLeft - 24 : xOfFret(relFret);
+      // Открытая струна — такая же точка, как и остальные, просто слева от порожка.
+      var cx = isOpen ? marginLeft - dotRadius - 8 : xOfFret(relFret);
       var cy = yOfString(note.string);
       var cls = ROLE_CLASS[note.role] || "other";
 
-      if (isOpen) {
-        // open string: draw an unfilled ring to the left of the nut
-        svg.appendChild(el("circle", {
-          cx: cx, cy: cy, r: dotRadius * 0.85, class: "note-ring " + cls,
-          "stroke-width": 3
-        }));
-      } else {
-        svg.appendChild(el("circle", {
-          cx: cx, cy: cy, r: dotRadius, class: "note-dot " + cls
-        }));
-      }
+      svg.appendChild(el("circle", {
+        cx: cx, cy: cy, r: dotRadius, class: "note-dot " + cls
+      }));
 
       var label = ROLE_LABEL[note.role];
       if (label) {

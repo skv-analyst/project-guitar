@@ -43,7 +43,7 @@
 
   var QUALITY_SUFFIX = { maj: "", min: "m", dim: "dim" };
 
-  // Круг квинт (мажорные тональности), клокви от C, как на reference/circle.png.
+  // Круг квинт (мажорные тональности), по часовой стрелке от C.
   var CIRCLE_MAJOR = [
     { name: "C", pc: 0, minorName: "Am", flats: false },
     { name: "G", pc: 7, minorName: "Em", flats: false },

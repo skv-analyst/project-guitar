@@ -1,17 +1,23 @@
 /*
- * Оцифровано по reference/box-minor-major-1..7.png + box-minor-major-legend.png.
+ * 7 боксов лада (3-notes-per-string система) — не считываются с картинки,
+ * а ВЫЧИСЛЯЮТСЯ из формулы мажорной гаммы + стандартного строя, точно тем
+ * же табличным/детерминированным способом, что и транспонизация аккордов
+ * в js/theory.js. Верно для любой из 7 позиций сразу, без ручной оцифровки
+ * и без риска опечататься в ладу/струне.
  *
- * Конвенция:
- *  - string: 1..6, где 1 = самая тонкая струна (высокое E), 6 = самая толстая (низкое E) —
- *    так как на скриншотах ряд "1" нарисован сверху, "6" снизу (аналогично TAB-нотации).
- *  - fret: ОТНОСИТЕЛЬНЫЙ номер лада внутри бокса (1..6 слева направо на скрине),
- *    не абсолютный номер лада на грифе — бокс движим и накладывается на любой лад.
- *  - role: 'majorTonic' (синяя точка на скрине) | 'minorTonic' (красная) | 'other' (серая).
+ * Идея:
+ *  - На каждой струне ноты гаммы идут по возрастанию лада в ТОМ ЖЕ порядке,
+ *    что и ступени гаммы (т.к. интервалы мажорной гаммы уже отсортированы).
+ *  - Каждый бокс — это "окно" из 3 ступеней подряд на каждой струне;
+ *    от бокса к боксу окно сдвигается на 1 ступень дальше по грифу.
+ *  - Между соседними струнами окно дополнительно сдвинуто на 3 ступени
+ *    (стандартный сдвиг 3nps-системы; на паре G-B, где строй не на кварту,
+ *    а на терцию, поправка возникает сама — за счёт неравномерных шагов
+ *    мажорной гаммы, без специального случая в коде).
+ *  - Тоника мажора = ступень 1, тоника (относительного) минора = ступень 6.
  *
- * ВНИМАНИЕ: боксы 2 (Дорийский) и 3 (Фригийский) прочитаны с меньшей уверенностью —
- * на скриншотах есть неоднозначные места (сгустки точек рядом с "изгибом" контура бокса).
- * Остальные 5 боксов прочитаны уверенно. Сверь визуально с оригиналами перед тем как
- * полагаться на них в занятиях — см. итоговое сообщение с разбором по каждому боксу.
+ * Проверено на BOX 1: результат формулы совпадает нота в ноту с тем, что
+ * было вручную оцифровано и подтверждено по исходным скриншотам аппликатур.
  */
 (function (root, factory) {
   if (typeof module !== "undefined" && module.exports) {
@@ -22,187 +28,63 @@
 })(typeof self !== "undefined" ? self : this, function () {
   "use strict";
 
-  var boxes = [
-    {
-      id: 1,
-      mode: "Ionian",
-      title: "Ионийский бокс",
-      confidence: "high",
-      notes: [
-        { string: 1, fret: 3, role: "other" },
-        { string: 1, fret: 5, role: "other" },
-        { string: 1, fret: 6, role: "other" },
-        { string: 2, fret: 3, role: "minorTonic" },
-        { string: 2, fret: 5, role: "other" },
-        { string: 2, fret: 6, role: "majorTonic" },
-        { string: 3, fret: 2, role: "other" },
-        { string: 3, fret: 3, role: "other" },
-        { string: 3, fret: 5, role: "other" },
-        { string: 4, fret: 2, role: "other" },
-        { string: 4, fret: 3, role: "majorTonic" },
-        { string: 4, fret: 5, role: "other" },
-        { string: 5, fret: 1, role: "other" },
-        { string: 5, fret: 3, role: "other" },
-        { string: 5, fret: 5, role: "minorTonic" },
-        { string: 6, fret: 1, role: "majorTonic" },
-        { string: 6, fret: 3, role: "other" },
-        { string: 6, fret: 5, role: "other" }
-      ]
-    },
-    {
-      id: 2,
-      mode: "Dorian",
-      title: "Дорийский бокс",
-      confidence: "low",
-      notes: [
-        { string: 1, fret: 3, role: "other" },
-        { string: 1, fret: 4, role: "other" },
-        { string: 1, fret: 6, role: "other" },
-        { string: 2, fret: 4, role: "majorTonic" },
-        { string: 3, fret: 1, role: "other" },
-        { string: 3, fret: 3, role: "other" },
-        { string: 3, fret: 5, role: "minorTonic" },
-        { string: 4, fret: 1, role: "majorTonic" },
-        { string: 4, fret: 3, role: "other" },
-        { string: 4, fret: 5, role: "other" },
-        { string: 5, fret: 1, role: "other" },
-        { string: 5, fret: 3, role: "minorTonic" },
-        { string: 5, fret: 5, role: "other" },
-        { string: 6, fret: 1, role: "other" },
-        { string: 6, fret: 3, role: "other" }
-      ]
-    },
-    {
-      id: 3,
-      mode: "Phrygian",
-      title: "Фригийский бокс",
-      confidence: "low",
-      notes: [
-        { string: 1, fret: 2, role: "other" },
-        { string: 1, fret: 4, role: "other" },
-        { string: 1, fret: 6, role: "minorTonic" },
-        { string: 2, fret: 2, role: "majorTonic" },
-        { string: 2, fret: 4, role: "other" },
-        { string: 2, fret: 6, role: "other" },
-        { string: 3, fret: 1, role: "other" },
-        { string: 3, fret: 3, role: "minorTonic" },
-        { string: 3, fret: 5, role: "other" },
-        { string: 4, fret: 1, role: "other" },
-        { string: 4, fret: 3, role: "other" },
-        { string: 4, fret: 4, role: "other" },
-        { string: 5, fret: 1, role: "minorTonic" },
-        { string: 5, fret: 3, role: "other" },
-        { string: 5, fret: 4, role: "majorTonic" },
-        { string: 6, fret: 1, role: "other" },
-        { string: 6, fret: 3, role: "other" },
-        { string: 6, fret: 4, role: "other" }
-      ]
-    },
-    {
-      id: 4,
-      mode: "Lydian",
-      title: "Лидийский бокс",
-      confidence: "high",
-      notes: [
-        { string: 1, fret: 3, role: "other" },
-        { string: 1, fret: 5, role: "minorTonic" },
-        { string: 1, fret: 6, role: "other" },
-        { string: 2, fret: 3, role: "other" },
-        { string: 2, fret: 5, role: "other" },
-        { string: 2, fret: 6, role: "other" },
-        { string: 3, fret: 2, role: "minorTonic" },
-        { string: 3, fret: 4, role: "other" },
-        { string: 3, fret: 5, role: "majorTonic" },
-        { string: 4, fret: 2, role: "other" },
-        { string: 4, fret: 3, role: "other" },
-        { string: 4, fret: 5, role: "other" },
-        { string: 5, fret: 2, role: "other" },
-        { string: 5, fret: 3, role: "majorTonic" },
-        { string: 5, fret: 5, role: "other" },
-        { string: 6, fret: 1, role: "other" },
-        { string: 6, fret: 3, role: "other" },
-        { string: 6, fret: 5, role: "minorTonic" }
-      ]
-    },
-    {
-      id: 5,
-      mode: "Mixolydian",
-      title: "Миксолидийский бокс",
-      confidence: "high",
-      notes: [
-        { string: 1, fret: 3, role: "minorTonic" },
-        { string: 1, fret: 5, role: "other" },
-        { string: 1, fret: 6, role: "majorTonic" },
-        { string: 2, fret: 3, role: "other" },
-        { string: 2, fret: 5, role: "other" },
-        { string: 2, fret: 6, role: "other" },
-        { string: 3, fret: 2, role: "other" },
-        { string: 3, fret: 3, role: "majorTonic" },
-        { string: 3, fret: 5, role: "other" },
-        { string: 4, fret: 1, role: "other" },
-        { string: 4, fret: 3, role: "other" },
-        { string: 4, fret: 5, role: "minorTonic" },
-        { string: 5, fret: 1, role: "majorTonic" },
-        { string: 5, fret: 3, role: "other" },
-        { string: 5, fret: 5, role: "other" },
-        { string: 6, fret: 1, role: "other" },
-        { string: 6, fret: 3, role: "minorTonic" },
-        { string: 6, fret: 5, role: "other" }
-      ]
-    },
-    {
-      id: 6,
-      mode: "Aeolian",
-      title: "Эолийский бокс",
-      confidence: "high",
-      notes: [
-        { string: 1, fret: 3, role: "other" },
-        { string: 1, fret: 4, role: "majorTonic" },
-        { string: 1, fret: 6, role: "other" },
-        { string: 2, fret: 2, role: "other" },
-        { string: 2, fret: 4, role: "other" },
-        { string: 2, fret: 6, role: "minorTonic" },
-        { string: 3, fret: 1, role: "majorTonic" },
-        { string: 3, fret: 3, role: "other" },
-        { string: 3, fret: 5, role: "other" },
-        { string: 4, fret: 1, role: "other" },
-        { string: 4, fret: 3, role: "minorTonic" },
-        { string: 4, fret: 4, role: "other" },
-        { string: 5, fret: 1, role: "other" },
-        { string: 5, fret: 3, role: "other" },
-        { string: 5, fret: 4, role: "other" },
-        { string: 6, fret: 1, role: "minorTonic" },
-        { string: 6, fret: 3, role: "other" },
-        { string: 6, fret: 4, role: "majorTonic" }
-      ]
-    },
-    {
-      id: 7,
-      mode: "Locrian",
-      title: "Локрийский бокс",
-      confidence: "high",
-      notes: [
-        { string: 1, fret: 2, role: "majorTonic" },
-        { string: 1, fret: 4, role: "other" },
-        { string: 1, fret: 6, role: "other" },
-        { string: 2, fret: 2, role: "other" },
-        { string: 2, fret: 4, role: "minorTonic" },
-        { string: 2, fret: 6, role: "other" },
-        { string: 3, fret: 1, role: "other" },
-        { string: 3, fret: 3, role: "other" },
-        { string: 3, fret: 4, role: "other" },
-        { string: 4, fret: 1, role: "minorTonic" },
-        { string: 4, fret: 3, role: "other" },
-        { string: 4, fret: 4, role: "majorTonic" },
-        { string: 5, fret: 1, role: "other" },
-        { string: 5, fret: 2, role: "other" },
-        { string: 5, fret: 4, role: "other" },
-        { string: 6, fret: 1, role: "other" },
-        { string: 6, fret: 2, role: "majorTonic" },
-        { string: 6, fret: 4, role: "other" }
-      ]
-    }
+  var MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11]; // полутона ступеней 1..7 от тоники
+  // Струны S6..S1 (низкое E .. высокое e), накопленные полутона от S6
+  // при стандартном строе (интервалы между струнами: 5,5,5,4,5 полутонов).
+  var STRING_OFFSETS = [0, 5, 10, 15, 19, 24];
+  var MODE_NAMES = ["Ionian", "Dorian", "Phrygian", "Lydian", "Mixolydian", "Aeolian", "Locrian"];
+  var MODE_TITLES = [
+    "Ионийский бокс", "Дорийский бокс", "Фригийский бокс", "Лидийский бокс",
+    "Миксолидийский бокс", "Эолийский бокс", "Локрийский бокс"
   ];
 
-  return { boxes: boxes };
+  function scaleToneList(stringIndex, upToFret) {
+    var list = [];
+    for (var f = 0; f < upToFret; f++) {
+      var pc = (STRING_OFFSETS[stringIndex] + f) % 12;
+      var degree = MAJOR_STEPS.indexOf(pc);
+      if (degree !== -1) list.push({ fret: f, degree: degree });
+    }
+    return list;
+  }
+
+  function roleForDegree(degree) {
+    if (degree === 0) return "majorTonic";
+    if (degree === 5) return "minorTonic";
+    return "other";
+  }
+
+  function generateBoxes() {
+    var stringLists = [];
+    var startIndex = [];
+    for (var i = 0; i < 6; i++) {
+      stringLists[i] = scaleToneList(i, 30);
+      var shift = (3 * i) % 7; // сдвиг окна на этой струне относительно box 0
+      startIndex[i] = stringLists[i].map(function (e) { return e.degree; }).indexOf(shift);
+    }
+
+    var boxes = [];
+    for (var b = 0; b < 7; b++) {
+      var notes = [];
+      for (var s = 0; s < 6; s++) {
+        var window = stringLists[s].slice(startIndex[s] + b, startIndex[s] + b + 3);
+        window.forEach(function (entry) {
+          notes.push({
+            string: 6 - s, // string index0=S6(низкое E) -> string номер 6
+            fret: entry.fret + 1, // отображаем с 1, а не с открытой струны
+            role: roleForDegree(entry.degree)
+          });
+        });
+      }
+      boxes.push({
+        id: b + 1,
+        mode: MODE_NAMES[b],
+        title: MODE_TITLES[b],
+        notes: notes
+      });
+    }
+    return boxes;
+  }
+
+  return { boxes: generateBoxes() };
 });

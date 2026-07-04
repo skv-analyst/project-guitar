@@ -23,8 +23,8 @@
   // Классические прогрессии, заданные ступенями гаммы (1-based индекс в
   // диатонической лесенке) — общеизвестные, устоявшиеся схемы, а не наш выбор.
   var MAJOR_PROGRESSIONS = [
-    { id: "I-V-vi-IV", label: "I – V – vi – IV (поп-квадрат)", degrees: [1, 5, 6, 4] },
-    { id: "I-vi-IV-V", label: "I – vi – IV – V (пятидесятые)", degrees: [1, 6, 4, 5] },
+    { id: "I-V-vi-IV", label: "I – V – vi – IV", degrees: [1, 5, 6, 4] },
+    { id: "I-vi-IV-V", label: "I – vi – IV – V", degrees: [1, 6, 4, 5] },
     { id: "vi-IV-I-V", label: "vi – IV – I – V", degrees: [6, 4, 1, 5] },
     { id: "ii-V-I-vi", label: "ii – V – I – vi", degrees: [2, 5, 1, 6] }
   ];
@@ -42,6 +42,12 @@
     CagedData.shapes.forEach(function (shape) {
       var card = document.createElement("div");
       card.className = "caged-shape-card";
+
+      var label = document.createElement("div");
+      label.className = "caged-shape-name";
+      label.textContent = "f" + shape.id;
+      card.appendChild(label);
+
       var svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
       card.appendChild(svg);
       shapesRowEl.appendChild(card);
@@ -49,14 +55,14 @@
       var maxFret = Math.max.apply(null, shape.notes.map(function (n) { return n.fret; }));
       Fretboard.render(svg, {
         compact: true,
-        width: 420,
-        height: 320,
+        showNumbers: false,
+        width: 340,
+        height: 400,
         strings: 6,
         fretStart: 0,
         fretCount: Math.max(4, maxFret),
         notes: shape.notes,
-        muted: shape.muted,
-        title: "Форма " + shape.id
+        muted: shape.muted
       });
     });
   }

@@ -1,13 +1,13 @@
 /*
- * Экран "Боксы": табы BOX 1..7 + панель секвенций поверх выбранного бокса.
+ * Экран "Боксы": табы BOX 1..7 + сразу все секвенции сеткой под грифом
+ * (без выпадающего списка — чтобы всё было видно одним взглядом).
  */
 (function () {
   "use strict";
 
   var pickerEl = document.getElementById("box-picker");
   var svg = document.getElementById("box-fretboard");
-  var sequenceSelect = document.getElementById("sequence-select");
-  var sequenceView = document.getElementById("sequence-view");
+  var sequencesGridEl = document.getElementById("sequences-grid");
 
   var state = { boxId: 1 };
 
@@ -29,47 +29,30 @@
 
   function renderFretboard() {
     var box = BoxesData.boxes.filter(function (b) { return b.id === state.boxId; })[0];
-    var maxFret = Math.max.apply(null, box.notes.map(function (n) { return n.fret; }));
+    var frets = box.notes.map(function (n) { return n.fret; });
+    var fretStart = Math.min.apply(null, frets) - 1;
     Fretboard.render(svg, {
       strings: 6,
-      fretStart: 0,
-      fretCount: Math.max(6, maxFret),
+      fretStart: fretStart,
+      fretCount: 7,
+      showFretNumbers: false,
       notes: box.notes,
       muted: [],
       title: "BOX " + box.id + " — " + box.title
     });
   }
 
-  function renderSequenceOptions() {
-    sequenceSelect.innerHTML = "";
+  function renderSequencesGrid() {
+    sequencesGridEl.innerHTML = "";
     SequencesData.sequences.forEach(function (seq) {
-      var opt = document.createElement("option");
-      opt.value = seq.id;
-      opt.textContent = seq.name;
-      sequenceSelect.appendChild(opt);
+      var li = document.createElement("li");
+      li.textContent = seq.name + ": " + seq.numbers.join("-");
+
+      sequencesGridEl.appendChild(li);
     });
   }
 
-  function renderSequenceView() {
-    var seq = SequencesData.sequences.filter(function (s) { return s.id === sequenceSelect.value; })[0];
-    if (!seq) {
-      sequenceView.innerHTML = "";
-      return;
-    }
-    sequenceView.innerHTML = "";
-    var name = document.createElement("div");
-    name.className = "seq-name";
-    name.textContent = seq.name;
-    sequenceView.appendChild(name);
-    var numbers = document.createElement("div");
-    numbers.textContent = seq.numbers.join(" - ");
-    sequenceView.appendChild(numbers);
-  }
-
-  sequenceSelect.addEventListener("change", renderSequenceView);
-
   renderPicker();
   renderFretboard();
-  renderSequenceOptions();
-  renderSequenceView();
+  renderSequencesGrid();
 })();
