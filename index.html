@@ -70,37 +70,44 @@
     <section id="screen-fretboard" class="screen">
 
       <div class="panel">
-        <div class="top-row">
-          <div class="view-toggle" style="margin-left:0;">
+        <div class="control-row">
+          <div class="pill-toggle">
             <button class="durmoll-btn active" data-durmoll="dur">dur</button>
             <button class="durmoll-btn" data-durmoll="moll">moll</button>
           </div>
-          <div class="key-row" id="keyRow"></div>
-          <div class="view-toggle">
+          <div class="fill-row" id="keyRow"></div>
+        </div>
+        <div class="control-row">
+          <div class="pill-toggle">
             <button class="view-btn active" data-view="caged">EDCAG</button>
             <button class="view-btn" data-view="boxes">BOX</button>
           </div>
+          <div class="fill-row" id="degreeMiniRow"></div>
         </div>
-
-        <div class="shape-filter" id="shapeFilter"></div>
       </div>
 
       <div class="panel">
-        <div class="legend" id="legend" style="margin-top:0; margin-bottom:16px;"></div>
+        <div class="shape-filter" id="shapeFilter"></div>
+        <div class="legend" id="legend"></div>
         <div class="fretboard-wrap" id="fretboardWrap">
           <svg id="fretboardSvg" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
       </div>
 
-      <div class="panel" id="progressionPanel">
-        <div class="shape-filter" id="progressionFilter"></div>
-        <div class="degree-grid" id="degreeGrid" style="margin-top:16px;"></div>
-        <div class="degree-grid" id="sequenceGrid" style="margin-top:8px;"></div>
+      <div class="panel" id="group3Caged">
+        <div class="progression-filter" id="progressionFilter"></div>
+        <div class="sequence-row" id="sequenceGrid"></div>
       </div>
 
-      <div class="panel" id="boxSequencesPanel" hidden>
-        <div class="section-title">Секвенции</div>
-        <ul class="box-sequences-list" id="boxSequencesList"></ul>
+      <div class="panel" id="group3Boxes" style="display:none;">
+        <div class="seq-dropdown">
+          <button class="seq-dropdown-toggle" id="seqToggle">
+            <span class="seq-name" id="seqToggleLabel">Выберите паттерн</span>
+            <span class="seq-cubes" id="seqTogglePreview"></span>
+            <span class="seq-chevron">▾</span>
+          </button>
+          <div class="seq-dropdown-panel" id="seqPanel"></div>
+        </div>
       </div>
 
     </section>

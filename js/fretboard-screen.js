@@ -18,12 +18,15 @@
   var shapeFilterEl = document.getElementById("shapeFilter");
   var legendEl = document.getElementById("legend");
   var fretboardSvg = document.getElementById("fretboardSvg");
-  var progressionPanelEl = document.getElementById("progressionPanel");
+  var degreeMiniRowEl = document.getElementById("degreeMiniRow");
+  var group3CagedEl = document.getElementById("group3Caged");
+  var group3BoxesEl = document.getElementById("group3Boxes");
   var progressionFilterEl = document.getElementById("progressionFilter");
-  var degreeGridEl = document.getElementById("degreeGrid");
   var sequenceGridEl = document.getElementById("sequenceGrid");
-  var boxSequencesPanelEl = document.getElementById("boxSequencesPanel");
-  var boxSequencesListEl = document.getElementById("boxSequencesList");
+  var seqToggleEl = document.getElementById("seqToggle");
+  var seqToggleLabelEl = document.getElementById("seqToggleLabel");
+  var seqTogglePreviewEl = document.getElementById("seqTogglePreview");
+  var seqPanelEl = document.getElementById("seqPanel");
 
   var state = { key: "E", view: "caged", mode: "dur", selected: "all" };
   var progressionSelected = null;
@@ -133,7 +136,7 @@
         renderKeys();
         renderShapeFilter();
         renderFretboard();
-        renderDegreeGrid();
+        renderDegreeMiniRow();
         renderSequenceRow();
       });
       keyRowEl.appendChild(btn);
@@ -204,14 +207,16 @@
     return Theory.diatonicChords(keySemitone(state.key), mode, false);
   }
 
-  function renderDegreeGrid() {
+  // Ступени гаммы — про тональность, а не про EDCAG/BOX, поэтому рендерится
+  // независимо от view (живёт в блоке 1, под переключателем EDCAG/BOX).
+  function renderDegreeMiniRow() {
     var chords = currentChords();
-    degreeGridEl.innerHTML = "";
+    degreeMiniRowEl.innerHTML = "";
     chords.forEach(function (chord) {
       var cell = document.createElement("div");
-      cell.className = "degree-tile";
-      cell.innerHTML = '<span class="degree-roman">' + chord.roman + '</span><span class="degree-name">' + chord.name + "</span>";
-      degreeGridEl.appendChild(cell);
+      cell.className = "degree-mini";
+      cell.innerHTML = '<span class="roman">' + chord.roman + '</span><span class="name">' + chord.name + "</span>";
+      degreeMiniRowEl.appendChild(cell);
     });
   }
 
@@ -222,9 +227,9 @@
     if (progressionSelected === null) {
       for (var i = 0; i < 4; i++) {
         var placeholder = document.createElement("div");
-        placeholder.className = "degree-tile sequence-tile";
+        placeholder.className = "sequence-tile";
         placeholder.style.visibility = "hidden";
-        placeholder.innerHTML = '<span class="degree-roman">·</span><span class="degree-name">·</span>';
+        placeholder.innerHTML = '<span class="roman">·</span><span class="name">·</span>';
         sequenceGridEl.appendChild(placeholder);
       }
       return;
@@ -233,8 +238,8 @@
     ProgressionsData.progressions[progressionSelected].degrees.forEach(function (d) {
       var chord = chords[d - 1];
       var cell = document.createElement("div");
-      cell.className = "degree-tile sequence-tile";
-      cell.innerHTML = '<span class="degree-roman">' + chord.roman + '</span><span class="degree-name">' + chord.name + "</span>";
+      cell.className = "sequence-tile";
+      cell.innerHTML = '<span class="roman">' + chord.roman + '</span><span class="name">' + chord.name + "</span>";
       sequenceGridEl.appendChild(cell);
     });
   }
@@ -243,32 +248,54 @@
     progressionFilterEl.innerHTML = "";
     ProgressionsData.progressions.forEach(function (p, idx) {
       var btn = document.createElement("button");
-      btn.className = "shape-chip" + (progressionSelected === idx ? " active" : "");
-      btn.innerHTML = '<span style="font-size:13px;">' + p.label + "</span>";
-      btn.style.setProperty("--shape-color", "#C1633E");
+      btn.className = "progression-chip" + (progressionSelected === idx ? " active" : "");
+      btn.textContent = p.label;
       btn.addEventListener("click", function () {
         progressionSelected = progressionSelected === idx ? null : idx;
         renderProgressionFilter();
-        renderDegreeGrid();
         renderSequenceRow();
       });
       progressionFilterEl.appendChild(btn);
     });
   }
 
-  // Мелодические секвенции (js/data/sequences.js) — не часть референса,
-  // сохранены из прежней версии по решению пользователя: показываем их
-  // только в виде BOX, простым текстовым списком без интерактива.
-  function renderBoxSequences() {
-    boxSequencesPanelEl.hidden = state.view !== "boxes";
-    if (state.view !== "boxes") return;
-    boxSequencesListEl.innerHTML = "";
-    SequencesData.sequences.forEach(function (seq) {
-      var li = document.createElement("li");
-      li.textContent = seq.name + ": " + seq.numbers.join("-");
-      boxSequencesListEl.appendChild(li);
+  // Кастомный дропдаун секвенций (js/data/sequences.js) для BOX-режима —
+  // чисто информационный выбор паттерна с превью-"кубиками", ни на что
+  // больше не влияет (как и в референсе).
+  var sequenceSelected = 0;
+
+  function cubesHTML(numbers) {
+    return numbers.map(function (n) { return '<span class="seq-cube">' + n + "</span>"; }).join("");
+  }
+
+  function renderSeqToggle() {
+    var seq = SequencesData.sequences[sequenceSelected];
+    seqToggleLabelEl.textContent = seq.name;
+    seqTogglePreviewEl.innerHTML = cubesHTML(seq.numbers);
+  }
+
+  function renderSeqPanel() {
+    seqPanelEl.innerHTML = "";
+    SequencesData.sequences.forEach(function (seq, idx) {
+      var row = document.createElement("div");
+      row.className = "seq-option";
+      row.innerHTML = '<span class="seq-name">' + seq.name + '</span><span class="seq-cubes">' + cubesHTML(seq.numbers) + "</span>";
+      row.addEventListener("click", function () {
+        sequenceSelected = idx;
+        renderSeqToggle();
+        seqPanelEl.classList.remove("open");
+      });
+      seqPanelEl.appendChild(row);
     });
   }
+
+  seqToggleEl.addEventListener("click", function () {
+    seqPanelEl.classList.toggle("open");
+  });
+  document.addEventListener("click", function (e) {
+    var dd = document.querySelector(".seq-dropdown");
+    if (dd && !dd.contains(e.target)) seqPanelEl.classList.remove("open");
+  });
 
   function setView(view) {
     state.view = view;
@@ -276,13 +303,11 @@
     document.querySelectorAll(".view-btn").forEach(function (b) {
       b.classList.toggle("active", b.dataset.view === view);
     });
-    // "Ступени гаммы" + прогрессии — только для EDCAG, в BOX-режиме их
-    // заменяет плоский список секвенций (см. renderBoxSequences).
-    progressionPanelEl.hidden = view !== "caged";
+    group3CagedEl.style.display = view === "caged" ? "" : "none";
+    group3BoxesEl.style.display = view === "boxes" ? "" : "none";
     renderShapeFilter();
     renderLegend();
     renderFretboard();
-    renderBoxSequences();
   }
 
   document.querySelectorAll(".view-btn").forEach(function (btn) {
@@ -297,14 +322,16 @@
       });
       renderLegend();
       renderFretboard();
-      renderDegreeGrid();
+      renderDegreeMiniRow();
       renderSequenceRow();
     });
   });
 
   renderKeys();
   setView("caged");
+  renderDegreeMiniRow();
   renderProgressionFilter();
-  renderDegreeGrid();
   renderSequenceRow();
+  renderSeqToggle();
+  renderSeqPanel();
 })();

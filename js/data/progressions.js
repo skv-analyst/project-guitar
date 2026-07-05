@@ -18,7 +18,10 @@
     { label: "I – V – vi – IV", degrees: [1, 5, 6, 4] },
     { label: "I – vi – IV – V", degrees: [1, 6, 4, 5] },
     { label: "vi – IV – I – V", degrees: [6, 4, 1, 5] },
-    { label: "ii – V – I – vi", degrees: [2, 5, 1, 6] }
+    { label: "ii – V – I – vi", degrees: [2, 5, 1, 6] },
+    { label: "I – IV – V – I", degrees: [1, 4, 5, 1] },
+    { label: "I – IV – vi – V", degrees: [1, 4, 6, 5] },
+    { label: "vi – ii – V – I", degrees: [6, 2, 5, 1] }
   ];
 
   return { progressions: progressions };
