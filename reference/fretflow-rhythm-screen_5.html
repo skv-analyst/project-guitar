@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FretFlow — Ритм-лаборатория</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F4EF;
+    --card: #FFFFFF;
+    --card2: #EFEBE2;
+    --line: #E1DCD0;
+    --accent: #C1633E;
+    --accent-dark: #A8502F;
+    --accent-contrast: #FFFFFF;
+    --muted: #8C8678;
+    --text: #201E1A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-badge {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: var(--accent-contrast); font-size: 13px;
+  }
+  .logo-name { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    color: var(--muted); border: 1px solid transparent; white-space: nowrap;
+  }
+  .tab.active { color: var(--text); background: var(--card2); border-color: var(--line); }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .bpm-display {
+    background: var(--card2);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    padding: 32px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+    flex: 1;
+  }
+  .bpm-number-row { display: flex; align-items: baseline; gap: 10px; }
+  #bpmValue {
+    font-size: 76px; font-weight: 700; line-height: 1;
+    color: var(--text);
+    transition: opacity 0.1s;
+    min-width: 3ch; text-align: center;
+  }
+  #bpmValue.pulse { opacity: 0.55; }
+  .bpm-unit { color: var(--muted); font-size: 15px; }
+
+  .bpm-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+  .bpm-btn {
+    height: 52px; border-radius: 14px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text);
+    font-weight: 700; font-size: 15px; cursor: pointer;
+    transition: transform 0.08s, background 0.15s;
+  }
+  .bpm-btn:active { transform: scale(0.94); background: var(--card2); }
+
+  .transport-row { display: flex; gap: 10px; width: 100%; }
+  .start-btn {
+    flex: 1; height: 58px; border-radius: 16px; border: none;
+    background: var(--accent); color: var(--accent-contrast);
+    font-weight: 800; font-size: 17px; letter-spacing: 0.02em; cursor: pointer;
+    transition: transform 0.08s, background 0.15s;
+  }
+  .start-btn.playing { background: var(--accent-dark); }
+  .start-btn:active { transform: scale(0.98); }
+
+  .tap-btn {
+    width: 58px; height: 58px; border-radius: 16px;
+    background: var(--card); border: 1px solid var(--line);
+    color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .tap-btn:active { transform: scale(0.94); }
+
+  .signature-row {
+    display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%;
+  }
+  .signature-btn {
+    flex: 1; height: 40px; border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px; cursor: pointer;
+  }
+  .signature-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+
+  .accent-toggle {
+    display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--muted); width: 100%;
+  }
+  .switch {
+    width: 40px; height: 24px; border-radius: 999px; background: var(--card);
+    border: 1px solid var(--line); position: relative; cursor: pointer;
+  }
+  .switch.on { background: var(--accent); border-color: var(--accent); }
+  .switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; border-radius: 50%; background: var(--text);
+    transition: transform 0.15s;
+  }
+  .switch.on::after { transform: translateX(16px); background: var(--accent-contrast); }
+
+  /* --- единая таблица такта: 16 честных ячеек (16-е — минимальная единица) --- */
+  .bar-table {
+    flex: 1;
+    position: relative;
+    background: var(--card2);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    overflow: hidden;
+    min-height: 220px;
+  }
+  .hl-layer, .note-layer {
+    position: absolute; inset: 0;
+    display: grid;
+    grid-template-columns: repeat(16, 1fr);
+  }
+  .hl-layer { z-index: 0; }
+  .note-layer { z-index: 1; }
+
+  .hl-slot {
+    background: transparent;
+    transition: background 0.08s;
+  }
+  .hl-slot.active { background: #F6D9CC; }
+
+  .beat-divider {
+    position: absolute; top: 0; bottom: 0; width: 1px;
+    background: var(--line); z-index: 2; pointer-events: none;
+  }
+
+  .note-cell {
+    display: flex; align-items: flex-end; justify-content: flex-start;
+    padding: 0 0 14px 6px;
+  }
+  .note-glyph { width: 22px; height: auto; }
+  .note-glyph * { stroke: var(--text); fill: var(--text); }
+
+  .generate-btn {
+    width: 100%; height: 56px; border-radius: 18px; border: none; margin-top: 16px;
+    background: var(--accent); color: var(--accent-contrast);
+    font-weight: 800; font-size: 15px; letter-spacing: 0.02em; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.08s, background 0.15s;
+  }
+  .generate-btn:active { transform: scale(0.98); background: var(--accent-dark); }
+
+  /* tablet */
+  @media (min-width: 768px) {
+    main { max-width: 900px; }
+    .rhythm-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: stretch;
+    }
+  }
+  /* desktop */
+  @media (min-width: 1200px) {
+    main { max-width: 1080px; }
+    .rhythm-layout { grid-template-columns: 0.85fr 1.15fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">FF</div>
+    <span class="logo-name">FretFlow</span>
+  </div>
+  <div class="tabs">
+    <div class="tab active">Ритм</div>
+    <div class="tab">Гриф</div>
+    <div class="tab">Секундомер</div>
+  </div>
+</header>
+
+<main>
+  <div class="rhythm-layout">
+
+    <!-- Метроном -->
+    <div class="panel">
+      <div class="bpm-display">
+        <div class="bpm-number-row">
+          <span id="bpmValue" class="mono">70</span>
+          <span class="bpm-unit mono">BPM</span>
+        </div>
+        <div class="bpm-controls">
+          <button class="bpm-btn mono" data-delta="-5">−5</button>
+          <button class="bpm-btn mono" data-delta="-1">−1</button>
+          <button class="bpm-btn mono" data-delta="1">+1</button>
+          <button class="bpm-btn mono" data-delta="5">+5</button>
+        </div>
+        <div class="transport-row">
+          <button id="startBtn" class="start-btn">СТАРТ</button>
+          <button id="tapBtn" class="tap-btn">TAP</button>
+        </div>
+        <div class="signature-row">
+          <button class="signature-btn active" data-sig="4/4">4/4</button>
+          <button class="signature-btn" data-sig="4/8">4/8</button>
+          <button class="signature-btn" data-sig="4/16">4/16</button>
+        </div>
+        <div class="accent-toggle">
+          <span>Акцент на 1</span>
+          <div id="accentSwitch" class="switch on"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Паттерн ритма: честная сетка на 16 ячеек -->
+    <div class="panel">
+      <div class="bar-table" id="barTable">
+        <div class="hl-layer" id="hlLayer"></div>
+        <div class="note-layer" id="noteLayer"></div>
+      </div>
+      <button id="generateBtn" class="generate-btn">⚡ Генерировать ритм</button>
+    </div>
+
+  </div>
+</main>
+
+<script>
+/* ==========================================================================
+   ДЕМО-ВЕРСИЯ: несколько базовых паттернов на долю, честная сетка на 16
+   ячеек (16-я — минимальная единица такта). Каждая нота — самостоятельный
+   SVG нужной ширины (1, 2 или 4 ячейки), поставленный кодом в свою ячейку.
+   Полный набор длительностей и пауз — задача для полноценной разработки
+   в репозитории, не для этого прототипа.
+   ========================================================================== */
+
+// паттерн доли — просто как делится доля на ноты (сумма всегда = 4 шестнадцатых)
+const DURATION_POOL = [
+  { key: 'quarter',     spans: [4] },
+  { key: 'two-eighths', spans: [2,2] },
+  { key: 'sixteenths',  spans: [1,1,1,1] },
+  { key: 'eighth-2-16', spans: [2,1,1] },
+];
+
+let beats = ['quarter', 'two-eighths', 'sixteenths', 'quarter'];
+
+function flagPath(x, y){
+  return `<path d="M ${x} ${y} C ${x+9} ${y+3}, ${x+10} ${y+11}, ${x+1} ${y+15} C ${x+7} ${y+9}, ${x+5} ${y+4}, ${x} ${y} Z"/>`;
+}
+
+// вид ноты определяется ТОЛЬКО шириной в ячейках: 4=четверть, 2=восьмая, 1=шестнадцатая
+function noteGlyphSVG(span){
+  const noteHead = `<ellipse cx="9" cy="50" rx="6.5" ry="4.6" transform="rotate(-18 9 50)"/>`;
+  const stem = `<rect x="14.5" y="8" width="2.2" height="42"/>`;
+  let flags = '';
+  if (span <= 2) flags += flagPath(16.7, 8);
+  if (span === 1) flags += flagPath(16.7, 19);
+  return `<svg viewBox="0 0 30 60" class="note-glyph" preserveAspectRatio="xMinYMid meet">${noteHead}${stem}${flags}</svg>`;
+}
+
+function renderBar(){
+  const hlLayer = document.getElementById('hlLayer');
+  const noteLayer = document.getElementById('noteLayer');
+  hlLayer.innerHTML = '';
+  noteLayer.innerHTML = '';
+
+  // 16 слотов подсветки — ровно те же ячейки, куда ставятся ноты
+  for (let s=0; s<16; s++){
+    const slot = document.createElement('div');
+    slot.className = 'hl-slot';
+    hlLayer.appendChild(slot);
+  }
+
+  // ноты — каждая в своей ячейке(ах), начиная строго с начала слота
+  beats.forEach((key, beatIndex) => {
+    const pattern = DURATION_POOL.find(p => p.key === key);
+    let localSlot = 0;
+    pattern.spans.forEach(span => {
+      const cell = document.createElement('div');
+      cell.className = 'note-cell';
+      cell.style.gridColumn = `span ${span}`;
+      cell.innerHTML = noteGlyphSVG(span);
+      noteLayer.appendChild(cell);
+      localSlot += span;
+    });
+  });
+
+  // разделители между 4 долями (после 4, 8, 12 ячейки из 16)
+  document.querySelectorAll('.beat-divider').forEach(el => el.remove());
+  const table = document.getElementById('barTable');
+  [4,8,12].forEach(s => {
+    const div = document.createElement('div');
+    div.className = 'beat-divider';
+    div.style.left = (s/16*100) + '%';
+    table.appendChild(div);
+  });
+}
+
+function generateRhythm(){
+  beats = Array.from({length:4}, () => DURATION_POOL[Math.floor(Math.random()*DURATION_POOL.length)].key);
+  renderBar();
+}
+
+// ---------- metronome state ----------
+let bpm = 70;
+let playing = false;
+let audioCtx = null;
+let nextNoteTime = 0;
+let currentClick = 0;
+let schedulerTimer = null;
+let accentFirst = true;
+let signature = '4/4';
+const SLOTS_PER_BEAT = { '4/4': 1, '4/8': 2, '4/16': 4 };
+
+const LOOKAHEAD = 25;
+const SCHEDULE_AHEAD = 0.1;
+
+function totalClicks(){ return 4 * SLOTS_PER_BEAT[signature]; }
+function secondsPerClick(){ return (60 / bpm) / SLOTS_PER_BEAT[signature]; }
+
+function ensureAudio(){
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playClick(time, isAccent){
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = isAccent ? 1400 : 900;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  gain.gain.setValueAtTime(isAccent ? 0.25 : 0.15, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+  osc.start(time);
+  osc.stop(time + 0.07);
+}
+
+function scheduler(){
+  while (nextNoteTime < audioCtx.currentTime + SCHEDULE_AHEAD){
+    const isAccent = accentFirst && currentClick === 0;
+    playClick(nextNoteTime, isAccent);
+    const clickIndex = currentClick;
+    const delay = (nextNoteTime - audioCtx.currentTime) * 1000;
+    setTimeout(() => highlightClick(clickIndex), Math.max(0, delay));
+
+    nextNoteTime += secondsPerClick();
+    currentClick = (currentClick + 1) % totalClicks();
+  }
+  schedulerTimer = setTimeout(scheduler, LOOKAHEAD);
+}
+
+function highlightClick(clickIndex){
+  const slotsPerBeat = SLOTS_PER_BEAT[signature];
+  const span = 4 / slotsPerBeat;
+  const firstGlobalSlot = clickIndex * span;
+
+  const slots = document.querySelectorAll('#hlLayer .hl-slot');
+  slots.forEach(s => s.classList.remove('active'));
+  for (let s = firstGlobalSlot; s < firstGlobalSlot + span; s++){
+    if (slots[s]) slots[s].classList.add('active');
+  }
+
+  const bpmEl = document.getElementById('bpmValue');
+  bpmEl.classList.add('pulse');
+  setTimeout(() => bpmEl.classList.remove('pulse'), 90);
+}
+
+function clearHighlight(){
+  document.querySelectorAll('.hl-slot').forEach(s => s.classList.remove('active'));
+}
+
+function startStop(){
+  ensureAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  playing = !playing;
+  const btn = document.getElementById('startBtn');
+  if (playing){
+    btn.textContent = 'СТОП';
+    btn.classList.add('playing');
+    currentClick = 0;
+    nextNoteTime = audioCtx.currentTime + 0.05;
+    scheduler();
+  } else {
+    btn.textContent = 'СТАРТ';
+    btn.classList.remove('playing');
+    clearTimeout(schedulerTimer);
+    clearHighlight();
+  }
+}
+
+let tapTimes = [];
+function tapTempo(){
+  const now = performance.now();
+  tapTimes.push(now);
+  tapTimes = tapTimes.filter(t => now - t < 2500);
+  if (tapTimes.length >= 2){
+    const intervals = [];
+    for (let i=1; i<tapTimes.length; i++) intervals.push(tapTimes[i]-tapTimes[i-1]);
+    const avg = intervals.reduce((a,b)=>a+b,0) / intervals.length;
+    bpm = Math.round(Math.min(240, Math.max(30, 60000/avg)));
+    document.getElementById('bpmValue').textContent = bpm;
+  }
+}
+
+// ---------- events ----------
+document.querySelectorAll('.bpm-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    bpm = Math.min(240, Math.max(30, bpm + Number(btn.dataset.delta)));
+    document.getElementById('bpmValue').textContent = bpm;
+  });
+});
+
+document.querySelectorAll('.signature-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    signature = btn.dataset.sig;
+    document.querySelectorAll('.signature-btn').forEach(b => b.classList.toggle('active', b === btn));
+    currentClick = 0;
+    clearHighlight();
+  });
+});
+
+document.getElementById('startBtn').addEventListener('click', startStop);
+document.getElementById('tapBtn').addEventListener('click', tapTempo);
+document.getElementById('generateBtn').addEventListener('click', generateRhythm);
+document.getElementById('accentSwitch').addEventListener('click', function(){
+  accentFirst = !accentFirst;
+  this.classList.toggle('on', accentFirst);
+});
+
+renderBar();
+</script>
+</body>
+</html>
