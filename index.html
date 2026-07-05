@@ -1,105 +1,108 @@
 <meta charset="utf-8">
 <title>Guitar Practice</title>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="theme-color" content="#12151c">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F4EF">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Guitar Practice">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="icon" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/styles.css">
 
-<div id="orientation-guard" class="orientation-guard">
-  <p>Поверни iPad в альбомную ориентацию</p>
-</div>
-
 <div class="app">
-  <nav class="tabs" role="tablist">
-    <button class="tab active" data-screen="metronome" role="tab" aria-selected="true">Метроном</button>
-    <button class="tab" data-screen="caged" role="tab" aria-selected="false">CAGED</button>
-    <button class="tab" data-screen="boxes" role="tab" aria-selected="false">Боксы</button>
-    <button class="tab" data-screen="stopwatch" role="tab" aria-selected="false">Секундомер</button>
-  </nav>
+  <header>
+    <div class="logo">
+      <div class="logo-badge">GP</div>
+      <span class="logo-name">Guitar Practice</span>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab active" data-screen="rhythm" role="tab" aria-selected="true">Ритм</button>
+      <button class="tab" data-screen="fretboard" role="tab" aria-selected="false">Гриф</button>
+    </nav>
+  </header>
 
   <main class="screens">
-    <section id="screen-metronome" class="screen active">
-      <div class="metronome">
-        <div class="bpm-display">
-          <span id="bpm-value">100</span>
-          <span class="bpm-label">BPM</span>
-        </div>
-        <input id="bpm-slider" type="range" min="30" max="260" value="100" step="1">
-        <div class="bpm-buttons">
-          <button class="bpm-step" data-delta="-5">-5</button>
-          <button class="bpm-step" data-delta="-1">-1</button>
-          <button class="bpm-step" data-delta="1">+1</button>
-          <button class="bpm-step" data-delta="5">+5</button>
-        </div>
+    <section id="screen-rhythm" class="screen active">
+      <div class="rhythm-layout">
 
-        <div class="meter-row">
-          <label for="time-sig">Размер такта</label>
-          <select id="time-sig">
-            <option value="2">2/4</option>
-            <option value="3">3/4</option>
-            <option value="4" selected>4/4</option>
-            <option value="6">6/8</option>
-          </select>
-          <label class="accent-toggle">
-            <input type="checkbox" id="accent-toggle" checked>
-            Акцент на 1-ю долю
-          </label>
-        </div>
-
-        <div class="beat-lights" id="beat-lights"></div>
-
-        <button id="metronome-toggle" class="big-toggle">Старт</button>
-      </div>
-    </section>
-
-    <section id="screen-caged" class="screen">
-      <div class="caged-content">
-        <div class="caged-shapes-row" id="caged-shapes-row"></div>
-
-        <div class="progression-panel">
-          <svg id="circle-of-fifths" class="circle-of-fifths" viewBox="0 0 260 260"></svg>
-
-          <div class="task-panel">
-            <div class="scale-steps-header">Ступени гаммы</div>
-            <div class="chord-progression" id="chord-progression"></div>
-
-            <select id="progression-select" class="progression-select"></select>
-
-            <div class="chord-progression task" id="task-progression"></div>
+        <div class="panel">
+          <div class="bpm-display">
+            <div class="bpm-number-row">
+              <span id="bpmValue" class="mono">70</span>
+              <span class="bpm-unit mono">BPM</span>
+            </div>
+            <div class="bpm-controls">
+              <button class="bpm-btn mono" data-delta="-5">−5</button>
+              <button class="bpm-btn mono" data-delta="-1">−1</button>
+              <button class="bpm-btn mono" data-delta="1">+1</button>
+              <button class="bpm-btn mono" data-delta="5">+5</button>
+            </div>
+            <div class="transport-row">
+              <button id="startBtn" class="start-btn">СТАРТ</button>
+              <button id="tapBtn" class="tap-btn">TAP</button>
+            </div>
+            <div class="signature-row">
+              <button class="signature-btn active" data-sig="4/4">4/4</button>
+              <button class="signature-btn" data-sig="4/8">4/8</button>
+              <button class="signature-btn" data-sig="4/16">4/16</button>
+            </div>
+            <div class="accent-toggle">
+              <span>Акцент на 1</span>
+              <div id="accentSwitch" class="switch on"></div>
+            </div>
           </div>
         </div>
+
+        <div class="panel">
+          <div class="bar-table" id="barTable">
+            <div class="hl-layer" id="hlLayer"></div>
+            <div class="note-layer" id="noteLayer"></div>
+          </div>
+          <button id="generateBtn" class="generate-btn">⚡ Генерировать ритм</button>
+        </div>
+
       </div>
     </section>
 
-    <section id="screen-boxes" class="screen">
-      <div class="box-picker" id="box-picker"></div>
+    <section id="screen-fretboard" class="screen">
 
-      <div class="legend">
-        <span class="legend-item"><i class="dot major"></i>Тоника мажора</span>
-        <span class="legend-item"><i class="dot minor"></i>Тоника минора</span>
-        <span class="legend-item"><i class="dot other"></i>Остальные ступени</span>
+      <div class="panel">
+        <div class="top-row">
+          <div class="view-toggle" style="margin-left:0;">
+            <button class="durmoll-btn active" data-durmoll="dur">dur</button>
+            <button class="durmoll-btn" data-durmoll="moll">moll</button>
+          </div>
+          <div class="key-row" id="keyRow"></div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="caged">EDCAG</button>
+            <button class="view-btn" data-view="boxes">BOX</button>
+          </div>
+        </div>
+
+        <div class="shape-filter" id="shapeFilter"></div>
       </div>
 
-      <div class="fretboard-wrap box-fretboard-wrap">
-        <svg id="box-fretboard" class="fretboard-svg box-fretboard-svg" viewBox="0 0 1000 420"></svg>
-      </div>
-
-      <ol class="sequences-list" id="sequences-grid"></ol>
-    </section>
-
-    <section id="screen-stopwatch" class="screen">
-      <div class="stopwatch">
-        <div class="stopwatch-display" id="stopwatch-display">00:00</div>
-        <div class="stopwatch-buttons">
-          <button id="stopwatch-toggle" class="big-toggle">Старт</button>
-          <button id="stopwatch-reset" class="big-secondary">Сброс</button>
+      <div class="panel">
+        <div class="legend" id="legend" style="margin-top:0; margin-bottom:16px;"></div>
+        <div class="fretboard-wrap" id="fretboardWrap">
+          <svg id="fretboardSvg" xmlns="http://www.w3.org/2000/svg"></svg>
         </div>
       </div>
+
+      <div class="panel" id="progressionPanel">
+        <div class="shape-filter" id="progressionFilter"></div>
+        <div class="degree-grid" id="degreeGrid" style="margin-top:16px;"></div>
+        <div class="degree-grid" id="sequenceGrid" style="margin-top:8px;"></div>
+      </div>
+
+      <div class="panel" id="boxSequencesPanel" hidden>
+        <div class="section-title">Секвенции</div>
+        <ul class="box-sequences-list" id="boxSequencesList"></ul>
+      </div>
+
     </section>
   </main>
 </div>
@@ -108,12 +111,10 @@
 <script src="js/data/caged.js"></script>
 <script src="js/data/boxes.js"></script>
 <script src="js/data/sequences.js"></script>
+<script src="js/data/progressions.js"></script>
 <script src="js/fretboard.js"></script>
-<script src="js/circle-of-fifths.js"></script>
-<script src="js/metronome.js"></script>
-<script src="js/stopwatch.js"></script>
-<script src="js/caged-screen.js"></script>
-<script src="js/boxes-screen.js"></script>
+<script src="js/rhythm-screen.js"></script>
+<script src="js/fretboard-screen.js"></script>
 <script src="js/app.js"></script>
 <script>
   if ("serviceWorker" in navigator) {

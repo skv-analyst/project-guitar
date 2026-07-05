@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FretFlow — Гриф</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F4EF;
+    --card: #FFFFFF;
+    --card2: #EFEBE2;
+    --line: #E1DCD0;
+    --accent: #C1633E;
+    --accent-dark: #A8502F;
+    --accent-contrast: #FFFFFF;
+    --third: #B98B3E;
+    --fifth: #6B8A6E;
+    --relminor: #8B5A6B;
+    --other: #C7C0AF;
+    --muted: #8C8678;
+    --text: #201E1A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-badge {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: var(--accent-contrast); font-size: 13px;
+  }
+  .logo-name { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    color: var(--muted); border: 1px solid transparent; white-space: nowrap;
+  }
+  .tab.active { color: var(--text); background: var(--card2); border-color: var(--line); }
+
+  main {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 24px 32px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* --- строка: тональность + переключатель EDCAG/BOX в один ряд --- */
+  .top-row {
+    display: flex; align-items: center; gap: 20px; flex-wrap: nowrap;
+  }
+  .key-row { display: flex; gap: 6px; flex-shrink: 0; }
+  .key-btn {
+    width: 42px; height: 42px;
+    border-radius: 10px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px;
+    cursor: pointer; transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .key-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+
+  .view-toggle {
+    display: flex; gap: 4px; background: var(--card2); border-radius: 12px; padding: 4px;
+    flex-shrink: 0; margin-left: auto;
+  }
+  .view-toggle button {
+    height: 42px; padding: 0 22px; border: none; border-radius: 8px; background: transparent;
+    color: var(--muted); font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap;
+  }
+  .view-toggle button.active { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .view-toggle button:disabled { color: #C9C4B7; cursor: not-allowed; }
+
+  .shape-filter { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .shape-chip {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    flex: 1; min-width: 64px; height: 52px; border-radius: 12px;
+    border: 1.5px solid var(--shape-color, var(--line));
+    background: var(--card); color: var(--shape-color, var(--text));
+    font-weight: 800; font-size: 14px; cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .shape-chip .chip-sub { font-size: 10px; font-weight: 600; opacity: 0.75; font-family: 'JetBrains Mono', monospace; }
+  .shape-chip.active { background: var(--shape-color, var(--accent)); color: #fff; }
+  .shape-hint { font-size: 12px; color: var(--muted); margin-top: 10px; }
+
+  .fretboard-wrap {
+    margin-top: 16px;
+    overflow-x: auto;
+    background: var(--card2);
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    padding: 8px 4px;
+  }
+  #fretboardSvg { display: block; }
+
+  .legend { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .legend-dot { width: 16px; height: 16px; border-radius: 50%; }
+
+  .degree-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
+  .degree-tile {
+    background: var(--card2); border: 1px solid var(--line); border-radius: 10px;
+    padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    transition: background 0.15s, border-color 0.15s, color 0.15s;
+  }
+  .degree-tile .degree-roman { font-size: 8px; color: var(--muted); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .degree-tile .degree-name { font-size: 12px; font-weight: 800; }
+  .sequence-tile {
+    background: #F1DFD4; border-color: #F1DFD4;
+  }
+  .sequence-tile .degree-roman { color: var(--accent-dark); }
+  .sequence-tile .degree-name { color: var(--accent-dark); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">FF</div>
+    <span class="logo-name">FretFlow</span>
+  </div>
+  <div class="tabs">
+    <div class="tab">Ритм</div>
+    <div class="tab active">Гриф</div>
+    <div class="tab">Секундомер</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="panel">
+    <div class="top-row">
+      <div class="view-toggle" style="margin-left:0;">
+        <button class="durmoll-btn active" data-durmoll="dur">dur</button>
+        <button class="durmoll-btn" data-durmoll="moll">moll</button>
+      </div>
+      <div class="key-row" id="keyRow"></div>
+      <div class="view-toggle">
+        <button class="view-btn active" data-view="caged">EDCAG</button>
+        <button class="view-btn" data-view="boxes">BOX</button>
+      </div>
+    </div>
+
+    <div class="shape-filter" id="shapeFilter"></div>
+  </div>
+
+  <div class="panel">
+    <div class="legend" id="legend" style="margin-top:0; margin-bottom:16px;"></div>
+    <div class="fretboard-wrap" id="fretboardWrap">
+      <svg id="fretboardSvg" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="shape-filter" id="progressionFilter"></div>
+    <div class="degree-grid" id="degreeGrid" style="margin-top:16px;"></div>
+    <div class="degree-grid" id="sequenceGrid" style="margin-top:8px;"></div>
+  </div>
+
+</main>
+
+<script>
+/* =========================================================================
+   ДАННЫЕ (в дальнейшем — вынести в отдельные .json файлы без изменения формы)
+   ========================================================================= */
+
+const STRING_NAMES = ['e','B','G','D','A','E']; // индекс 0 = string1 (верх, высокая e)
+const STRING_OPEN_SEMITONE = { 1:4, 2:11, 3:7, 4:2, 5:9, 6:4 }; // e,B,G,D,A,E
+
+// 12 тональностей, порядок «от гитариста»: хроматика начиная с открытой E
+const KEYS = ['E','F','F#','G','G#','A','A#','B','C','C#','D','D#'];
+const KEY_SEMITONE = { C:0,'C#':1,D:2,'D#':3,E:4,F:5,'F#':6,G:7,'G#':8,A:9,'A#':10,B:11 };
+
+/* ---------- EDCAG (те же формы CAGED, порядок и логика показа — от E) ---------- */
+const SHAPE_ORDER = ['E','D','C','A','G'];
+const SHAPE_COLOR = { E:'#7C7AA6', D:'#4F8FA6', C:'#C1633E', A:'#6B8A6E', G:'#B98B3E' };
+const NATIVE_ROOT_SEMITONE = { C:0, A:9, G:7, E:4, D:2 };
+
+const SHAPES = {
+  C: [ {string:5, fret:3, degree:'1'}, {string:4, fret:2, degree:'3'}, {string:3, fret:0, degree:'5'},
+       {string:2, fret:1, degree:'1'}, {string:1, fret:0, degree:'3'} ],
+  A: [ {string:5, fret:0, degree:'1'}, {string:4, fret:2, degree:'5'}, {string:3, fret:2, degree:'1'},
+       {string:2, fret:2, degree:'3'}, {string:1, fret:0, degree:'5'} ],
+  G: [ {string:6, fret:3, degree:'1'}, {string:5, fret:2, degree:'3'}, {string:4, fret:0, degree:'5'},
+       {string:3, fret:0, degree:'1'}, {string:2, fret:0, degree:'3'}, {string:1, fret:3, degree:'1'} ],
+  E: [ {string:6, fret:0, degree:'1'}, {string:5, fret:2, degree:'5'}, {string:4, fret:2, degree:'1'},
+       {string:3, fret:1, degree:'3'}, {string:2, fret:0, degree:'5'}, {string:1, fret:0, degree:'1'} ],
+  D: [ {string:4, fret:0, degree:'1'}, {string:3, fret:2, degree:'5'}, {string:2, fret:3, degree:'1'},
+       {string:1, fret:2, degree:'3'} ],
+};
+
+function shapeAnchor(shapeName, targetSemitone){
+  return ((targetSemitone - NATIVE_ROOT_SEMITONE[shapeName]) % 12 + 12) % 12;
+}
+
+// в миноре терция (степень '3') опускается на полтона (1 лад), корень и квинта не трогаются
+function getShapeNotes(shapeName, mode){
+  return SHAPES[shapeName].map(n => {
+    if (mode === 'moll' && n.degree === '3'){
+      return { string: n.string, fret: n.fret - 1, degree: 'b3' };
+    }
+    return n;
+  });
+}
+
+/* ---------- Боксы (3 ноты на струну), степени вычислены и перепроверены
+   через реальные полутона — см. обсуждение в чате. Всё для системы мажора. ---------- */
+const MODE_NAMES = ['Ионийский','Дорийский','Фригийский','Лидийский','Миксолидийский','Эолийский','Локрийский'];
+const BOX_COLOR = ['#C1633E','#B98B3E','#8B8B4E','#6B8A6E','#4F8FA6','#7C7AA6','#A6588B'];
+// якорный (стартовый) лад каждого бокса, когда тональность = E (наша точка отсчёта)
+const BOX_NATIVE_ANCHOR_E = [0, 2, 4, 5, 7, 9, 11];
+
+// формат по договорённости: string(1..6), fret — ОТНОСИТЕЛЬНЫЙ (от якоря бокса), degree — ступень гаммы '1'..'7'
+const BOX_DEGREES = [
+  // box 1 — Ионийский
+  { 1:[{fret:2,degree:'2'},{fret:4,degree:'3'},{fret:5,degree:'4'}],
+    2:[{fret:2,degree:'6'},{fret:4,degree:'7'},{fret:5,degree:'1'}],
+    3:[{fret:1,degree:'3'},{fret:2,degree:'4'},{fret:4,degree:'5'}],
+    4:[{fret:1,degree:'7'},{fret:2,degree:'1'},{fret:4,degree:'2'}],
+    5:[{fret:0,degree:'4'},{fret:2,degree:'5'},{fret:4,degree:'6'}],
+    6:[{fret:0,degree:'1'},{fret:2,degree:'2'},{fret:4,degree:'3'}] },
+  // box 2 — Дорийский
+  { 1:[{fret:2,degree:'3'},{fret:3,degree:'4'},{fret:5,degree:'5'}],
+    2:[{fret:2,degree:'7'},{fret:3,degree:'1'},{fret:5,degree:'2'}],
+    3:[{fret:0,degree:'4'},{fret:2,degree:'5'},{fret:4,degree:'6'}],
+    4:[{fret:0,degree:'1'},{fret:2,degree:'2'},{fret:4,degree:'3'}],
+    5:[{fret:0,degree:'5'},{fret:2,degree:'6'},{fret:4,degree:'7'}],
+    6:[{fret:0,degree:'2'},{fret:2,degree:'3'},{fret:3,degree:'4'}] },
+  // box 3 — Фригийский
+  { 1:[{fret:1,degree:'4'},{fret:3,degree:'5'},{fret:5,degree:'6'}],
+    2:[{fret:1,degree:'1'},{fret:3,degree:'2'},{fret:5,degree:'3'}],
+    3:[{fret:0,degree:'5'},{fret:2,degree:'6'},{fret:4,degree:'7'}],
+    4:[{fret:0,degree:'2'},{fret:2,degree:'3'},{fret:3,degree:'4'}],
+    5:[{fret:0,degree:'6'},{fret:2,degree:'7'},{fret:3,degree:'1'}],
+    6:[{fret:0,degree:'3'},{fret:1,degree:'4'},{fret:3,degree:'5'}] },
+  // box 4 — Лидийский
+  { 1:[{fret:2,degree:'5'},{fret:4,degree:'6'},{fret:6,degree:'7'}],
+    2:[{fret:2,degree:'2'},{fret:4,degree:'3'},{fret:5,degree:'4'}],
+    3:[{fret:1,degree:'6'},{fret:3,degree:'7'},{fret:4,degree:'1'}],
+    4:[{fret:1,degree:'3'},{fret:2,degree:'4'},{fret:4,degree:'5'}],
+    5:[{fret:1,degree:'7'},{fret:2,degree:'1'},{fret:4,degree:'2'}],
+    6:[{fret:0,degree:'4'},{fret:2,degree:'5'},{fret:4,degree:'6'}] },
+  // box 5 — Миксолидийский
+  { 1:[{fret:2,degree:'6'},{fret:4,degree:'7'},{fret:5,degree:'1'}],
+    2:[{fret:2,degree:'3'},{fret:3,degree:'4'}],
+    3:[{fret:1,degree:'7'},{fret:2,degree:'1'},{fret:4,degree:'2'}],
+    4:[{fret:0,degree:'4'},{fret:2,degree:'5'},{fret:4,degree:'6'}],
+    5:[{fret:0,degree:'1'},{fret:2,degree:'2'},{fret:4,degree:'3'}],
+    6:[{fret:0,degree:'5'},{fret:2,degree:'6'},{fret:4,degree:'7'}] },
+  // box 6 — Эолийский
+  { 1:[{fret:2,degree:'7'},{fret:3,degree:'1'},{fret:5,degree:'2'}],
+    2:[{fret:1,degree:'4'},{fret:3,degree:'5'},{fret:5,degree:'6'}],
+    3:[{fret:0,degree:'1'},{fret:2,degree:'2'},{fret:4,degree:'3'}],
+    4:[{fret:0,degree:'5'},{fret:2,degree:'6'},{fret:4,degree:'7'}],
+    5:[{fret:0,degree:'2'},{fret:2,degree:'3'},{fret:3,degree:'4'}],
+    6:[{fret:0,degree:'6'},{fret:2,degree:'7'},{fret:3,degree:'1'}] },
+  // box 7 — Локрийский
+  { 1:[{fret:1,degree:'1'},{fret:3,degree:'2'},{fret:5,degree:'3'}],
+    2:[{fret:1,degree:'5'},{fret:3,degree:'6'},{fret:5,degree:'7'}],
+    3:[{fret:0,degree:'2'},{fret:2,degree:'3'},{fret:3,degree:'4'}],
+    4:[{fret:0,degree:'6'},{fret:2,degree:'7'},{fret:3,degree:'1'}],
+    5:[{fret:0,degree:'3'},{fret:1,degree:'4'},{fret:3,degree:'5'}],
+    6:[{fret:0,degree:'7'},{fret:1,degree:'1'},{fret:3,degree:'2'}] },
+];
+
+function boxAnchor(boxIndex, targetSemitone){
+  return ((BOX_NATIVE_ANCHOR_E[boxIndex] + (targetSemitone - 4) % 12 + 12) % 12);
+}
+
+/* ---------- Ступени гаммы и аккордовые прогрессии ---------- */
+const MAJOR_STEPS = [0,2,4,5,7,9,11];
+const MAJOR_QUALITY = ['maj','min','min','maj','maj','min','dim'];
+const MAJOR_ROMAN = ['I','ii','iii','IV','V','vi','vii°'];
+
+const MINOR_STEPS = [0,2,3,5,7,8,10];
+const MINOR_QUALITY = ['min','dim','maj','min','min','maj','maj'];
+const MINOR_ROMAN = ['i','ii°','III','iv','v','VI','VII'];
+
+const NOTE_NAMES_SHARP = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+const PROGRESSIONS = [
+  { label: 'I – V – vi – IV', degrees: [1,5,6,4] },
+  { label: 'I – vi – IV – V', degrees: [1,6,4,5] },
+  { label: 'vi – IV – I – V', degrees: [6,4,1,5] },
+  { label: 'ii – V – I – vi', degrees: [2,5,1,6] },
+];
+let progressionSelected = null; // индекс единственной активной прогрессии, либо null
+
+function diatonicChordName(keySemitone, degreeIndex){
+  const steps = state.mode === 'moll' ? MINOR_STEPS : MAJOR_STEPS;
+  const quality = state.mode === 'moll' ? MINOR_QUALITY : MAJOR_QUALITY;
+  const rootSemitone = (keySemitone + steps[degreeIndex]) % 12;
+  const q = quality[degreeIndex];
+  const suffix = q === 'min' ? 'm' : q === 'dim' ? 'dim' : '';
+  return NOTE_NAMES_SHARP[rootSemitone] + suffix;
+}
+
+function renderDegreeGrid(){
+  const grid = document.getElementById('degreeGrid');
+  grid.innerHTML = '';
+  const keySemitone = KEY_SEMITONE[state.key];
+  const roman = state.mode === 'moll' ? MINOR_ROMAN : MAJOR_ROMAN;
+  for (let i=0; i<7; i++){
+    const cell = document.createElement('div');
+    cell.className = 'degree-tile';
+    cell.innerHTML = `<span class="degree-roman">${roman[i]}</span><span class="degree-name">${diatonicChordName(keySemitone, i)}</span>`;
+    grid.appendChild(cell);
+  }
+}
+
+function renderSequenceRow(){
+  const wrap = document.getElementById('sequenceGrid');
+  wrap.innerHTML = '';
+  const keySemitone = KEY_SEMITONE[state.key];
+  const roman = state.mode === 'moll' ? MINOR_ROMAN : MAJOR_ROMAN;
+
+  if (progressionSelected === null){
+    // невидимые плейсхолдеры — держат высоту блока, чтобы она не прыгала при вкл/выкл
+    for (let i=0; i<4; i++){
+      const cell = document.createElement('div');
+      cell.className = 'degree-tile sequence-tile';
+      cell.style.visibility = 'hidden';
+      cell.innerHTML = `<span class="degree-roman">·</span><span class="degree-name">·</span>`;
+      wrap.appendChild(cell);
+    }
+    return;
+  }
+
+  PROGRESSIONS[progressionSelected].degrees.forEach(d => {
+    const i = d - 1;
+    const cell = document.createElement('div');
+    cell.className = 'degree-tile sequence-tile';
+    cell.innerHTML = `<span class="degree-roman">${roman[i]}</span><span class="degree-name">${diatonicChordName(keySemitone, i)}</span>`;
+    wrap.appendChild(cell);
+  });
+}
+
+function renderProgressionFilter(){
+  const wrap = document.getElementById('progressionFilter');
+  wrap.innerHTML = '';
+  PROGRESSIONS.forEach((p, idx) => {
+    const btn = document.createElement('button');
+    btn.className = 'shape-chip' + (progressionSelected === idx ? ' active' : '');
+    btn.innerHTML = `<span style="font-size:13px;">${p.label}</span>`;
+    btn.style.setProperty('--shape-color', '#C1633E');
+    btn.addEventListener('click', () => {
+      progressionSelected = (progressionSelected === idx) ? null : idx;
+      renderProgressionFilter();
+      renderDegreeGrid();
+      renderSequenceRow();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+/* =========================================================================
+   СОСТОЯНИЕ И РЕНДЕР
+   ========================================================================= */
+
+let state = { key: 'E', view: 'caged', mode: 'dur', selected: 'all' };
+
+const STRINGS = 6;
+const FRETS = 17;
+const marginL = 90, marginR = 30, fretCellPx = 60;
+const neckTop = 88, neckBottom = 88 + 5*48;
+const totalW = marginL + marginR + FRETS*fretCellPx;
+
+function stringY(s){ return neckTop + (s-1) * ((neckBottom-neckTop)/(STRINGS-1)); }
+function fretLineX(n){ return marginL + n*fretCellPx; }
+function noteX(fret){ return fret === 0 ? marginL - 34 : fretLineX(fret-1) + fretCellPx/2; }
+
+function isVisible(key){ return state.selected === 'all' || state.selected.has(key); }
+
+function degreeColor(d){
+  if (d === '1') return '#C1633E';
+  if (d === '6') return '#8B5A6B';
+  return '#C7C0AF';
+}
+function degreeTextColor(d){ return (d === '1' || d === '6') ? '#fff' : '#5A5648'; }
+function degreeLabel(d){ return (d === '1' || d === '6') ? d : ''; }
+
+function renderFretboard(){
+  const svg = document.getElementById('fretboardSvg');
+  svg.setAttribute('viewBox', `0 0 ${totalW} 460`);
+  svg.style.width = totalW + 'px';
+  svg.style.height = '460px';
+
+  const targetSemitone = KEY_SEMITONE[state.key];
+  let html = '';
+
+  for (let s=1; s<=STRINGS; s++){
+    const y = stringY(s);
+    html += `<line x1="${marginL-34}" y1="${y}" x2="${fretLineX(FRETS)}" y2="${y}" stroke="#C9C4B7" stroke-width="1.5"/>`;
+    html += `<text x="${marginL-56}" y="${y+5}" font-family="JetBrains Mono, monospace" font-size="14" fill="#8C8678" text-anchor="middle">${STRING_NAMES[s-1]}</text>`;
+  }
+  for (let f=0; f<=FRETS; f++){
+    const x = fretLineX(f);
+    html += `<line x1="${x}" y1="${neckTop}" x2="${x}" y2="${neckBottom}" stroke="${f===0?'#201E1A':'#C9C4B7'}" stroke-width="${f===0?4:1.5}"/>`;
+  }
+  [3,5,7,9,15,17].forEach(f=>{
+    html += `<circle cx="${noteX(f)}" cy="${(neckTop+neckBottom)/2}" r="5" fill="#DCD6C8"/>`;
+  });
+  {
+    const x = noteX(12);
+    html += `<circle cx="${x}" cy="${neckTop + (neckBottom-neckTop)/2 - 16}" r="5" fill="#DCD6C8"/>`;
+    html += `<circle cx="${x}" cy="${neckTop + (neckBottom-neckTop)/2 + 16}" r="5" fill="#DCD6C8"/>`;
+  }
+  for (let f=1; f<=FRETS; f++){
+    html += `<text x="${noteX(f)}" y="${neckBottom+28}" font-family="JetBrains Mono, monospace" font-size="13" fill="#8C8678" text-anchor="middle">${f}</text>`;
+  }
+
+  if (state.view === 'caged'){
+    SHAPE_ORDER.forEach(name => {
+      if (!isVisible(name)) return;
+      const shift = shapeAnchor(name, targetSemitone);
+      const notes = getShapeNotes(name, state.mode).filter(n => n.fret + shift >= 0);
+      const frets = notes.map(n => n.fret + shift);
+      const minF = Math.min(...frets), maxF = Math.max(...frets);
+      const cx = (noteX(minF) + noteX(maxF)) / 2;
+      html += `<g>
+        <rect x="${cx-16}" y="${neckTop-38}" width="32" height="26" rx="8" fill="${SHAPE_COLOR[name]}"/>
+        <text x="${cx}" y="${neckTop-20}" font-family="Inter, sans-serif" font-weight="800" font-size="14" fill="#fff" text-anchor="middle">${name}</text>
+      </g>`;
+    });
+    SHAPE_ORDER.forEach(name => {
+      if (!isVisible(name)) return;
+      const shift = shapeAnchor(name, targetSemitone);
+      const notes = getShapeNotes(name, state.mode).filter(n => n.fret + shift >= 0);
+      notes.forEach(n => {
+        const fret = n.fret + shift;
+        const cx = noteX(fret), cy = stringY(n.string);
+        const color = n.degree === '1' ? '#C1633E' : (n.degree === '3' || n.degree === 'b3') ? '#B98B3E' : '#6B8A6E';
+        const label = n.degree === '1' ? 'R' : n.degree;
+        html += `<g>
+          <circle cx="${cx}" cy="${cy}" r="15" fill="${color}" stroke="#fff" stroke-width="2.5"/>
+          <text x="${cx}" y="${cy+5}" font-family="JetBrains Mono, monospace" font-weight="700" font-size="${label.length>1?11:13}" fill="#fff" text-anchor="middle">${label}</text>
+        </g>`;
+      });
+    });
+  } else {
+    for (let b=0; b<7; b++){
+      if (!isVisible(b)) continue;
+      const anchor = boxAnchor(b, targetSemitone);
+      const allNotes = Object.values(BOX_DEGREES[b]).flat();
+      const cols = allNotes.map(n => n.fret);
+      const minF = anchor + Math.min(...cols), maxF = anchor + Math.max(...cols);
+      const cx = (noteX(minF) + noteX(maxF)) / 2;
+      html += `<g>
+        <rect x="${cx-16}" y="${neckTop-38}" width="32" height="26" rx="8" fill="${BOX_COLOR[b]}"/>
+        <text x="${cx}" y="${neckTop-20}" font-family="Inter, sans-serif" font-weight="800" font-size="14" fill="#fff" text-anchor="middle">${b+1}</text>
+      </g>`;
+    }
+    for (let b=0; b<7; b++){
+      if (!isVisible(b)) continue;
+      const anchor = boxAnchor(b, targetSemitone);
+      Object.entries(BOX_DEGREES[b]).forEach(([stringNum, notes]) => {
+        notes.forEach(n => {
+          const fret = anchor + n.fret;
+          const cx = noteX(fret), cy = stringY(Number(stringNum));
+          const color = degreeColor(n.degree);
+          const label = n.degree === '1' ? 'R' : n.degree === '6' ? 'r' : '';
+          const r = (n.degree === '1' || n.degree === '6') ? 15 : 11;
+          html += `<g>
+            <circle cx="${cx}" cy="${cy}" r="${r}" fill="${color}" stroke="#fff" stroke-width="2.5"/>
+            ${label ? `<text x="${cx}" y="${cy+5}" font-family="JetBrains Mono, monospace" font-weight="700" font-size="13" fill="${degreeTextColor(n.degree)}" text-anchor="middle">${label}</text>` : ''}
+          </g>`;
+        });
+      });
+    }
+  }
+
+  svg.innerHTML = html;
+}
+
+function renderKeys(){
+  const row = document.getElementById('keyRow');
+  row.innerHTML = '';
+  KEYS.forEach(k => {
+    const btn = document.createElement('button');
+    btn.className = 'key-btn' + (k === state.key ? ' active' : '');
+    btn.textContent = k;
+    btn.addEventListener('click', () => {
+      state.key = k;
+      renderKeys();
+      renderShapeFilter();
+      renderFretboard();
+      renderDegreeGrid();
+      renderSequenceRow();
+    });
+    row.appendChild(btn);
+  });
+}
+
+function setView(view){
+  state.view = view;
+  state.selected = 'all';
+  document.querySelectorAll('.view-btn').forEach(b => b.classList.toggle('active', b.dataset.view === view));
+  renderShapeFilter();
+  renderLegend();
+  renderFretboard();
+}
+
+function toggleSelection(key){
+  if (state.selected === 'all'){
+    state.selected = new Set([key]);
+  } else {
+    if (state.selected.has(key)) state.selected.delete(key);
+    else state.selected.add(key);
+    if (state.selected.size === 0) state.selected = 'all';
+  }
+}
+
+function renderShapeFilter(){
+  const wrap = document.getElementById('shapeFilter');
+  const targetSemitone = KEY_SEMITONE[state.key];
+
+  const allBtn = document.createElement('button');
+  allBtn.className = 'shape-chip' + (state.selected === 'all' ? ' active' : '');
+  allBtn.innerHTML = `<span>Все</span>`;
+  allBtn.style.setProperty('--shape-color', '#201E1A');
+  allBtn.addEventListener('click', () => { state.selected = 'all'; renderShapeFilter(); renderFretboard(); });
+  wrap.innerHTML = '';
+  wrap.appendChild(allBtn);
+
+  if (state.view === 'caged'){
+    SHAPE_ORDER.forEach(name => {
+      const btn = document.createElement('button');
+      btn.className = 'shape-chip' + (isVisible(name) && state.selected !== 'all' ? ' active' : '');
+      btn.innerHTML = `<span>${name}(f)</span>`;
+      btn.style.setProperty('--shape-color', SHAPE_COLOR[name]);
+      btn.addEventListener('click', () => { toggleSelection(name); renderShapeFilter(); renderFretboard(); });
+      wrap.appendChild(btn);
+    });
+  } else {
+    for (let b=0; b<7; b++){
+      const btn = document.createElement('button');
+      btn.className = 'shape-chip' + (isVisible(b) && state.selected !== 'all' ? ' active' : '');
+      btn.innerHTML = `<span>${b+1}</span>`;
+      btn.title = MODE_NAMES[b];
+      btn.style.setProperty('--shape-color', BOX_COLOR[b]);
+      btn.addEventListener('click', () => { toggleSelection(b); renderShapeFilter(); renderFretboard(); });
+      wrap.appendChild(btn);
+    }
+  }
+}
+
+function renderLegend(){
+  const legend = document.getElementById('legend');
+  if (state.view === 'caged'){
+    const thirdLabel = state.mode === 'moll' ? 'Терция (b3)' : 'Терция (3)';
+    legend.innerHTML = `
+      <div class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span> Тоника (R)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--third)"></span> ${thirdLabel}</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--fifth)"></span> Квинта (5)</div>`;
+  } else {
+    legend.innerHTML = `
+      <div class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span> Тоника мажора (R)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--relminor)"></span> Тоника минора (r)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--other)"></span> Остальные ступени</div>`;
+  }
+}
+
+document.querySelectorAll('.view-btn').forEach(btn => {
+  btn.addEventListener('click', () => setView(btn.dataset.view));
+});
+document.querySelectorAll('.durmoll-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    state.mode = btn.dataset.durmoll;
+    document.querySelectorAll('.durmoll-btn').forEach(b => b.classList.toggle('active', b === btn));
+    renderLegend();
+    renderFretboard();
+    renderDegreeGrid();
+    renderSequenceRow();
+  });
+});
+
+renderKeys();
+setView('caged');
+renderProgressionFilter();
+renderDegreeGrid();
+renderSequenceRow();
+</script>
+</body>
+</html>
