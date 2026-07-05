@@ -213,14 +213,27 @@ main.screens {
   .rhythm-layout { grid-template-columns: 0.85fr 1.15fr; }
 }
 
-/* ---------- Гриф ---------- */
+/* ---------- Гриф: блок 1 — тональность/режим/ступени ---------- */
 
-.top-row {
-  display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+.control-row {
+  display: flex; align-items: center; gap: 14px; flex-wrap: nowrap;
 }
-.key-row { display: flex; gap: 6px; flex-wrap: wrap; }
+.control-row + .control-row { margin-top: 10px; }
+
+.pill-toggle {
+  display: flex; gap: 4px; background: var(--card2); border-radius: 12px; padding: 4px;
+  flex-shrink: 0;
+}
+.pill-toggle button {
+  height: 42px; padding: 0 20px; border: none; border-radius: 8px; background: transparent;
+  color: var(--muted); font-weight: 700; font-size: 13px; white-space: nowrap;
+}
+.pill-toggle button.active { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.pill-toggle button:disabled { color: #C9C4B7; cursor: not-allowed; }
+
+.fill-row { display: flex; gap: 6px; flex: 1; flex-wrap: wrap; }
 .key-btn {
-  width: 42px; height: 42px;
+  flex: 1; min-width: 0; height: 42px;
   border-radius: 10px; border: 1px solid var(--line);
   background: var(--card); color: var(--text);
   font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 13px;
@@ -228,17 +241,19 @@ main.screens {
 }
 .key-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
 
-.view-toggle {
-  display: flex; gap: 4px; background: var(--card2); border-radius: 12px; padding: 4px;
-  flex-shrink: 0;
+.degree-mini {
+  flex: 1; min-width: 0; height: 42px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border-radius: 10px; border: 1px solid var(--line);
+  background: var(--card2);
+  padding: 2px 4px;
 }
-.view-toggle button {
-  height: 42px; padding: 0 22px; border: none; border-radius: 8px; background: transparent;
-  color: var(--muted); font-weight: 700; font-size: 13px; white-space: nowrap;
-}
-.view-toggle button.active { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+.degree-mini .roman { font-size: 8px; color: var(--muted); font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+.degree-mini .name { font-size: 12px; font-weight: 800; line-height: 1.1; white-space: nowrap; }
 
-.shape-filter { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+/* ---------- Гриф: блок 2 — формы/боксы + гриф ---------- */
+
+.shape-filter { display: flex; gap: 8px; flex-wrap: wrap; }
 .shape-chip {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   flex: 1; min-width: 64px; height: 52px; border-radius: 12px;
@@ -259,33 +274,60 @@ main.screens {
 }
 #fretboardSvg { display: block; }
 
-.legend { display: flex; gap: 18px; flex-wrap: wrap; }
+.legend { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
 .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
 .legend-dot { width: 16px; height: 16px; border-radius: 50%; }
 
-.degree-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.degree-tile {
-  background: var(--card2); border: 1px solid var(--line); border-radius: 10px;
-  padding: 10px 4px; display: flex; flex-direction: column; align-items: center; gap: 3px;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-.degree-tile .degree-roman { font-size: 8px; color: var(--muted); font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-.degree-tile .degree-name { font-size: 12px; font-weight: 800; }
-.sequence-tile { background: #F1DFD4; border-color: #F1DFD4; }
-.sequence-tile .degree-roman { color: var(--accent-dark); }
-.sequence-tile .degree-name { color: var(--accent-dark); }
+/* ---------- Гриф: блок 3а — прогрессии (EDCAG) ---------- */
 
-/* Мелодические секвенции (BOX-режим) — простой текстовый список, без интерактива. */
-.box-sequences-list {
-  margin: 0;
-  padding-left: 1.2rem;
-  display: grid;
-  grid-template-rows: repeat(5, auto);
-  grid-auto-flow: column;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem 1.5rem;
-  color: var(--text);
-  font-size: 14px;
-  font-variant-numeric: tabular-nums;
+.progression-filter { display: flex; gap: 6px; flex-wrap: wrap; }
+.progression-chip {
+  flex: 1; min-width: 100px; height: 40px; border-radius: 10px;
+  border: 1.5px solid var(--accent);
+  background: var(--card); color: var(--accent);
+  font-weight: 700; font-size: 12px;
+  transition: background 0.12s, color 0.12s;
 }
-.box-sequences-list li::marker { color: var(--muted); }
+.progression-chip.active { background: var(--accent); color: #fff; }
+
+.sequence-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.sequence-tile {
+  flex: 1; min-width: 100px; height: 40px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px;
+  border-radius: 10px; background: #F1DFD4;
+}
+.sequence-tile .roman { font-size: 8px; color: var(--accent-dark); font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1; }
+.sequence-tile .name { font-size: 12px; font-weight: 800; color: var(--accent-dark); line-height: 1.1; }
+
+/* ---------- Гриф: блок 3б — секвенции (BOX), кастомный дропдаун ---------- */
+
+.seq-dropdown { position: relative; }
+.seq-dropdown-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  height: 46px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line);
+  background: var(--card); color: var(--text); font-weight: 700; font-size: 14px;
+}
+.seq-dropdown-toggle .seq-name { flex-shrink: 0; }
+.seq-cubes { display: flex; gap: 3px; flex-wrap: wrap; justify-content: flex-end; }
+.seq-cube {
+  width: 22px; height: 22px; border-radius: 6px; background: var(--card2);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 11px; color: var(--accent-dark);
+  flex-shrink: 0;
+}
+.seq-chevron { color: var(--muted); font-size: 11px; flex-shrink: 0; }
+.seq-dropdown-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; right: 0; z-index: 20;
+  background: var(--card); border: 1px solid var(--line); border-radius: 14px;
+  box-shadow: 0 12px 28px rgba(0,0,0,0.12);
+  max-height: 320px; overflow-y: auto;
+  display: none;
+}
+.seq-dropdown-panel.open { display: block; }
+.seq-option {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 16px; cursor: pointer; border-bottom: 1px solid var(--line);
+}
+.seq-option:last-child { border-bottom: none; }
+.seq-option:hover { background: var(--card2); }
+.seq-option .seq-name { font-size: 13px; font-weight: 700; }
