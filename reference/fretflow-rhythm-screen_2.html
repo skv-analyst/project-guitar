@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FretFlow — Ритм-лаборатория</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #121318;
+    --card: #1c1d24;
+    --card2: #22232b;
+    --line: #2a2c36;
+    --blue: #3E7BFA;
+    --green: #39FF88;
+    --muted: #8b8d9a;
+    --text: #f5f5f7;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-badge {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: linear-gradient(135deg, var(--blue), var(--green));
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: var(--bg); font-size: 13px;
+  }
+  .logo-name { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    color: var(--muted); border: 1px solid transparent; white-space: nowrap;
+  }
+  .tab.active { color: var(--text); background: var(--card2); border-color: var(--line); }
+
+  main {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .bpm-display {
+    background: #0d0e12;
+    border-radius: 20px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    padding: 32px 20px 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .bpm-number-row { display: flex; align-items: baseline; gap: 10px; }
+  #bpmValue {
+    font-size: 76px; font-weight: 700; line-height: 1;
+    color: var(--blue);
+    text-shadow: 0 0 22px rgba(62,123,250,0.55), 0 0 6px rgba(62,123,250,0.8);
+    transition: text-shadow 0.1s;
+    min-width: 3ch; text-align: center;
+  }
+  #bpmValue.pulse {
+    text-shadow: 0 0 34px rgba(62,123,250,0.95), 0 0 10px rgba(62,123,250,1);
+  }
+  .bpm-unit { color: var(--muted); font-size: 15px; }
+
+  .bpm-controls { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+  .bpm-btn {
+    height: 52px; border-radius: 14px; border: 1px solid var(--line);
+    background: var(--card2); color: var(--text);
+    font-weight: 700; font-size: 15px; cursor: pointer;
+    transition: transform 0.08s, background 0.15s;
+  }
+  .bpm-btn:active { transform: scale(0.94); background: #2b2d38; }
+
+  .transport-row { display: flex; gap: 10px; width: 100%; }
+  .start-btn {
+    flex: 1; height: 58px; border-radius: 16px; border: none;
+    background: var(--blue); color: var(--bg);
+    font-weight: 800; font-size: 17px; letter-spacing: 0.02em; cursor: pointer;
+    transition: transform 0.08s, background 0.15s;
+  }
+  .start-btn.playing { background: var(--green); }
+  .start-btn:active { transform: scale(0.98); }
+
+  .tap-btn {
+    width: 58px; height: 58px; border-radius: 16px;
+    background: var(--card2); border: 1px solid var(--line);
+    color: var(--text); font-size: 12px; font-weight: 700; cursor: pointer;
+  }
+  .tap-btn:active { transform: scale(0.94); }
+
+  .section-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .beat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+  .rhythm-card {
+    position: relative;
+    aspect-ratio: 3 / 4;
+    background: var(--card2);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    padding: 16px 8px 14px;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    gap: 10px;
+    transition: border-color 0.12s, transform 0.12s, background 0.12s;
+  }
+
+  .rhythm-card.on {
+    border-color: var(--blue);
+    background: rgba(62,123,250,0.12);
+    transform: translateY(-2px);
+  }
+
+  .card-note-svg { width: 58%; height: auto; }
+  .card-note-svg * { stroke: var(--text); fill: var(--text); }
+  .rhythm-card.on .card-note-svg * { stroke: var(--blue); fill: var(--blue); }
+
+  .card-hits {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; font-size: 15px; color: var(--muted);
+    display: flex; gap: 7px; letter-spacing: 1px;
+  }
+  .rhythm-card.on .card-hits { color: var(--blue); }
+
+  .card-underlines { display: flex; gap: 7px; height: 4px; margin-top: -6px; }
+  .card-underline-seg { height: 2px; background: var(--muted); align-self: flex-start; margin-top: 1px; }
+  .card-underline-seg.double { height: 4px; border-top: 2px solid var(--muted); border-bottom: 2px solid var(--muted); background: transparent; }
+  .rhythm-card.on .card-underline-seg { background: var(--blue); }
+  .rhythm-card.on .card-underline-seg.double { border-color: var(--blue); }
+
+  .card-tracker {
+    display: flex; gap: 4px; margin-top: auto;
+  }
+  .tracker-cell {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 1.5px solid var(--line);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .tracker-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); }
+  .rhythm-card.on .tracker-cell { border-color: rgba(62,123,250,0.35); }
+  .rhythm-card.on .tracker-dot { background: var(--blue); }
+
+  .generate-btn {
+    width: 100%; height: 64px; border-radius: 18px; border: none;
+    background: var(--green); color: var(--bg);
+    font-weight: 800; font-size: 15px; letter-spacing: 0.02em; cursor: pointer;
+    box-shadow: 0 0 32px -8px rgba(57,255,136,0.65);
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    transition: transform 0.08s;
+  }
+  .generate-btn:active { transform: scale(0.98); }
+
+  .signature-row {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+  }
+  .signature-select {
+    background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 12px; padding: 10px 14px; font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; font-weight: 700;
+  }
+  .signature-fixed {
+    background: var(--card2); border: 1px solid var(--line); color: var(--text);
+    border-radius: 12px; padding: 10px 14px; font-size: 14px; font-weight: 700;
+  }
+  .accent-toggle {
+    display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted);
+  }
+  .switch {
+    width: 40px; height: 24px; border-radius: 999px; background: var(--card2);
+    border: 1px solid var(--line); position: relative; cursor: pointer;
+  }
+  .switch.on { background: var(--blue); border-color: var(--blue); }
+  .switch::after {
+    content: ''; position: absolute; top: 2px; left: 2px;
+    width: 18px; height: 18px; border-radius: 50%; background: var(--text);
+    transition: transform 0.15s;
+  }
+  .switch.on::after { transform: translateX(16px); background: var(--bg); }
+
+  /* tablet */
+  @media (min-width: 768px) {
+    main { max-width: 900px; }
+    .rhythm-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+  }
+  /* desktop */
+  @media (min-width: 1200px) {
+    main { max-width: 1080px; }
+    .rhythm-layout { grid-template-columns: 0.9fr 1.1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">FF</div>
+    <span class="logo-name">FretFlow</span>
+  </div>
+  <div class="tabs">
+    <div class="tab active">Ритм</div>
+    <div class="tab">Гриф</div>
+    <div class="tab">Секундомер</div>
+  </div>
+</header>
+
+<main>
+  <div class="rhythm-layout">
+
+    <!-- Метроном -->
+    <div class="panel">
+      <div class="section-title">Метроном</div>
+      <div class="bpm-display">
+        <div class="bpm-number-row">
+          <span id="bpmValue" class="mono">70</span>
+          <span class="bpm-unit mono">BPM</span>
+        </div>
+        <div class="bpm-controls">
+          <button class="bpm-btn mono" data-delta="-5">−5</button>
+          <button class="bpm-btn mono" data-delta="-1">−1</button>
+          <button class="bpm-btn mono" data-delta="1">+1</button>
+          <button class="bpm-btn mono" data-delta="5">+5</button>
+        </div>
+        <div class="transport-row">
+          <button id="startBtn" class="start-btn">СТАРТ</button>
+          <button id="tapBtn" class="tap-btn">TAP</button>
+        </div>
+        <div class="signature-row">
+          <span class="signature-fixed mono">4/4</span>
+          <div class="accent-toggle">
+            <span>Акцент на 1</span>
+            <div id="accentSwitch" class="switch on"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Генератор ритма -->
+    <div class="panel">
+      <div class="section-title">
+        <span>Паттерн для тренировки</span>
+      </div>
+  <div id="beatGrid" class="beat-grid" style="margin-bottom: 26px; margin-top: 4px;"></div>
+      <button id="generateBtn" class="generate-btn">⚡ Генерировать ритм</button>
+    </div>
+
+  </div>
+</main>
+
+<script>
+// ---------- state ----------
+let bpm = 70;
+let playing = false;
+let audioCtx = null;
+let nextNoteTime = 0;
+let currentBeat = 0;
+let schedulerTimer = null;
+let beatsPerBar = 4;
+let accentFirst = true;
+
+const LOOKAHEAD = 25; // ms
+const SCHEDULE_AHEAD = 0.1; // seconds
+
+const DURATION_POOL = [
+  { key: 'quarter', label: 'Четверть', hits: 1, code: 'Q' },
+  { key: 'two-eighths', label: '2 восьмые', hits: 2, code: 'E' },
+  { key: 'four-sixteenths', label: '4 шестн.', hits: 4, code: 'S' },
+  { key: 'eighth-two-sixteenths', label: '♪+2×16', hits: 3, code: 'M' },
+  { key: 'triplet', label: 'Триоль', hits: 3, code: 'T' },
+];
+
+let beats = ['quarter', 'two-eighths', 'four-sixteenths', 'quarter'];
+
+// ---------- note glyph SVG (рукописный стиль, как на бумажных карточках) ----------
+function noteSVG(type){
+  const noteHead = (cx, cy) => `<ellipse cx="${cx}" cy="${cy}" rx="7" ry="5" transform="rotate(-18 ${cx} ${cy})"/>`;
+  const stem = (x, yTop, yBottom) => `<rect x="${x}" y="${yTop}" width="2.4" height="${yBottom-yTop}"/>`;
+  const beam = (x1, x2, y, h) => `<rect x="${x1}" y="${y}" width="${x2-x1}" height="${h}"/>`;
+
+  if (type === 'quarter'){
+    return `<svg viewBox="0 0 60 90" class="card-note-svg">
+      ${noteHead(30,68)}${stem(37,20,68)}
+    </svg>`;
+  }
+  if (type === 'two-eighths'){
+    return `<svg viewBox="0 0 60 90" class="card-note-svg">
+      ${noteHead(14,68)}${stem(21,26,68)}
+      ${noteHead(46,68)}${stem(53,26,68)}
+      ${beam(21,55.4,24,6)}
+    </svg>`;
+  }
+  if (type === 'four-sixteenths'){
+    return `<svg viewBox="0 0 70 90" class="card-note-svg">
+      ${noteHead(9,68)}${stem(16,20,68)}
+      ${noteHead(27,68)}${stem(34,20,68)}
+      ${noteHead(45,68)}${stem(52,20,68)}
+      ${noteHead(63,68)}${stem(70,20,68)}
+      ${beam(16,72.4,18,5.5)}
+      ${beam(16,72.4,26,5.5)}
+    </svg>`;
+  }
+  if (type === 'eighth-two-sixteenths'){
+    return `<svg viewBox="0 0 66 90" class="card-note-svg">
+      ${noteHead(9,68)}${stem(16,22,68)}
+      ${noteHead(35,68)}${stem(42,22,68)}
+      ${noteHead(57,68)}${stem(64,22,68)}
+      ${beam(16,66.4,24,5.5)}
+      ${beam(42,66.4,32,5.5)}
+    </svg>`;
+  }
+  if (type === 'triplet'){
+    return `<svg viewBox="0 0 66 92" class="card-note-svg">
+      ${noteHead(9,68)}${stem(16,26,68)}
+      ${noteHead(33,68)}${stem(40,26,68)}
+      ${noteHead(57,68)}${stem(64,26,68)}
+      ${beam(16,66.4,24,5.5)}
+      <text x="33" y="18" text-anchor="middle" font-size="13" font-family="JetBrains Mono, monospace" stroke="none">3</text>
+    </svg>`;
+  }
+  return '';
+}
+
+// hit-строка "х" + подчёркивающие связки, сгруппированные как биты нот
+function hitsHTML(type){
+  const groups = {
+    'quarter':                [1],
+    'two-eighths':             [2],
+    'four-sixteenths':         [4],
+    'eighth-two-sixteenths':   [1,2],
+    'triplet':                 [3],
+  }[type];
+  const doubleBeam = (type === 'four-sixteenths');
+
+  const totalX = groups.reduce((a,b)=>a+b,0);
+  const hitsRow = '<div class="card-hits">' + Array.from({length: totalX}).map(()=> '×').join(' ') + '</div>';
+
+  let under = '<div class="card-underlines">';
+  groups.forEach(g => {
+    if (g > 1){
+      under += `<div class="card-underline-seg${doubleBeam?' double':''}" style="width:${g*13}px"></div>`;
+    } else {
+      under += `<div style="width:13px"></div>`;
+    }
+  });
+  under += '</div>';
+
+  return hitsRow + under;
+}
+
+// ---------- beat grid render ----------
+function renderBeats(){
+  const grid = document.getElementById('beatGrid');
+  grid.innerHTML = '';
+  beats.forEach((key, i) => {
+    const d = DURATION_POOL.find(x => x.key === key);
+    const card = document.createElement('div');
+    card.className = 'rhythm-card';
+
+    let tracker = '<div class="card-tracker">';
+    for (let t=0; t<beatsPerBar; t++){
+      tracker += `<div class="tracker-cell">${t===i ? '<div class="tracker-dot"></div>' : ''}</div>`;
+    }
+    tracker += '</div>';
+
+    card.innerHTML = noteSVG(key) + hitsHTML(key) + tracker;
+    grid.appendChild(card);
+  });
+}
+
+function generateRhythm(){
+  beats = Array.from({length: beatsPerBar}, () => DURATION_POOL[Math.floor(Math.random()*DURATION_POOL.length)].key);
+  renderBeats();
+}
+
+// ---------- audio ----------
+function ensureAudio(){
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
+
+function playClick(time, isAccent){
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.frequency.value = isAccent ? 1400 : 900;
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  gain.gain.setValueAtTime(isAccent ? 0.25 : 0.15, time);
+  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.06);
+  osc.start(time);
+  osc.stop(time + 0.07);
+}
+
+function scheduler(){
+  while (nextNoteTime < audioCtx.currentTime + SCHEDULE_AHEAD){
+    const isAccent = accentFirst && currentBeat === 0;
+    playClick(nextNoteTime, isAccent);
+    const beatIndex = currentBeat;
+    const delay = (nextNoteTime - audioCtx.currentTime) * 1000;
+    setTimeout(() => highlightBeat(beatIndex), Math.max(0, delay));
+
+    const secondsPerBeat = 60.0 / bpm;
+    nextNoteTime += secondsPerBeat;
+    currentBeat = (currentBeat + 1) % beatsPerBar;
+  }
+  schedulerTimer = setTimeout(scheduler, LOOKAHEAD);
+}
+
+function highlightBeat(index){
+  document.querySelectorAll('.rhythm-card').forEach((cell, i) => {
+    cell.classList.toggle('on', i === index);
+  });
+  const bpmEl = document.getElementById('bpmValue');
+  bpmEl.classList.add('pulse');
+  setTimeout(() => bpmEl.classList.remove('pulse'), 90);
+}
+
+function startStop(){
+  ensureAudio();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  playing = !playing;
+  const btn = document.getElementById('startBtn');
+  if (playing){
+    btn.textContent = 'СТОП';
+    btn.classList.add('playing');
+    currentBeat = 0;
+    nextNoteTime = audioCtx.currentTime + 0.05;
+    scheduler();
+  } else {
+    btn.textContent = 'СТАРТ';
+    btn.classList.remove('playing');
+    clearTimeout(schedulerTimer);
+    document.querySelectorAll('.rhythm-card').forEach(c => c.classList.remove('on'));
+  }
+}
+
+// ---------- tap tempo ----------
+let tapTimes = [];
+function tapTempo(){
+  const now = performance.now();
+  tapTimes.push(now);
+  tapTimes = tapTimes.filter(t => now - t < 2500);
+  if (tapTimes.length >= 2){
+    const intervals = [];
+    for (let i = 1; i < tapTimes.length; i++) intervals.push(tapTimes[i] - tapTimes[i-1]);
+    const avg = intervals.reduce((a,b) => a+b, 0) / intervals.length;
+    bpm = Math.round(Math.min(240, Math.max(30, 60000 / avg)));
+    document.getElementById('bpmValue').textContent = bpm;
+  }
+}
+
+// ---------- events ----------
+document.querySelectorAll('.bpm-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    bpm = Math.min(240, Math.max(30, bpm + Number(btn.dataset.delta)));
+    document.getElementById('bpmValue').textContent = bpm;
+  });
+});
+
+document.getElementById('startBtn').addEventListener('click', startStop);
+document.getElementById('tapBtn').addEventListener('click', tapTempo);
+document.getElementById('generateBtn').addEventListener('click', generateRhythm);
+
+document.getElementById('accentSwitch').addEventListener('click', function(){
+  accentFirst = !accentFirst;
+  this.classList.toggle('on', accentFirst);
+});
+
+// ---------- init ----------
+renderBeats();
+</script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>FretFlow — Гриф</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F6F4EF;
+    --card: #FFFFFF;
+    --card2: #EFEBE2;
+    --line: #E1DCD0;
+    --accent: #C1633E;
+    --accent-dark: #A8502F;
+    --accent-contrast: #FFFFFF;
+    --third: #B98B3E;
+    --fifth: #6B8A6E;
+    --muted: #8C8678;
+    --text: #201E1A;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', -apple-system, sans-serif;
+    min-height: 100vh;
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-badge {
+    width: 34px; height: 34px; border-radius: 10px;
+    background: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; color: var(--accent-contrast); font-size: 13px;
+  }
+  .logo-name { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 8px 14px; border-radius: 10px; font-size: 13px; font-weight: 600;
+    color: var(--muted); border: 1px solid transparent; white-space: nowrap;
+  }
+  .tab.active { color: var(--text); background: var(--card2); border-color: var(--line); }
+
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+
+  .panel {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 24px;
+    padding: 20px;
+  }
+
+  .section-title {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+    color: var(--muted); font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  /* --- селектор тональности --- */
+  .key-row {
+    display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px;
+    -ms-overflow-style: none; scrollbar-width: none;
+  }
+  .key-row::-webkit-scrollbar { display: none; }
+  .key-btn {
+    flex-shrink: 0; min-width: 48px; height: 48px; padding: 0 12px;
+    border-radius: 12px; border: 1px solid var(--line);
+    background: var(--card); color: var(--text);
+    font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 14px;
+    cursor: pointer; transition: background 0.12s, border-color 0.12s, color 0.12s;
+  }
+  .key-btn.active { background: var(--accent); border-color: var(--accent); color: var(--accent-contrast); }
+
+  /* --- сегментированные переключатели --- */
+  .segmented { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--card2); border-radius: 14px; padding: 4px; }
+  .segmented button {
+    height: 46px; border: none; border-radius: 10px; background: transparent;
+    color: var(--muted); font-weight: 700; font-size: 14px; cursor: pointer;
+  }
+  .segmented button.active { background: var(--card); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,0.08); }
+  .segmented button:disabled { color: #C9C4B7; cursor: not-allowed; }
+
+  .controls-row { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+  .controls-row > * { flex: 1; min-width: 160px; }
+
+  /* --- фильтр по формам CAGED --- */
+  .shape-filter { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .shape-chip {
+    flex: 1; min-width: 56px; height: 44px; border-radius: 12px;
+    border: 1.5px solid var(--shape-color, var(--line));
+    background: var(--card); color: var(--shape-color, var(--text));
+    font-weight: 800; font-size: 14px; cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+  .shape-chip.active { background: var(--shape-color, var(--accent)); color: #fff; }
+
+  /* --- гриф --- */
+  .fretboard-wrap {
+    margin-top: 16px;
+    overflow-x: auto;
+    background: var(--card2);
+    border-radius: 18px;
+    border: 1px solid var(--line);
+    padding: 8px 4px;
+  }
+  #fretboardSvg { width: 100%; min-width: 720px; display: block; }
+
+  .legend { display: flex; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
+  .legend-item { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .legend-dot { width: 16px; height: 16px; border-radius: 50%; }
+
+  /* tablet / desktop */
+  @media (min-width: 768px) {
+    main { max-width: 1000px; }
+    .top-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+  }
+  @media (min-width: 1200px) {
+    main { max-width: 1180px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-badge">FF</div>
+    <span class="logo-name">FretFlow</span>
+  </div>
+  <div class="tabs">
+    <div class="tab">Ритм</div>
+    <div class="tab active">Гриф</div>
+    <div class="tab">Секундомер</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="panel">
+    <div class="section-title"><span>Тональность</span><span id="keyLabel" class="mono">C · мажор</span></div>
+    <div class="key-row" id="keyRow"></div>
+
+    <div class="top-grid">
+      <div class="controls-row" style="margin-top:14px;">
+        <div class="segmented">
+          <button class="mode-btn active" data-mode="major">Мажор</button>
+          <button class="mode-btn" data-mode="minor" disabled>Минор</button>
+        </div>
+      </div>
+      <div class="controls-row" style="margin-top:14px;">
+        <div class="segmented">
+          <button class="view-btn active" data-view="caged">Формы CAGED</button>
+          <button class="view-btn" data-view="boxes" disabled>Боксы (1–7)</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="shape-filter" id="shapeFilter"></div>
+  </div>
+
+  <div class="panel">
+    <div class="section-title">
+      <span>Гриф · 15 ладов</span>
+    </div>
+    <div class="fretboard-wrap">
+      <svg id="fretboardSvg" viewBox="0 0 1200 460" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="legend">
+      <div class="legend-item"><span class="legend-dot" style="background:var(--accent)"></span> Тоника (R)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--third)"></span> Терция (3)</div>
+      <div class="legend-item"><span class="legend-dot" style="background:var(--fifth)"></span> Квинта (5)</div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ---------- theory ----------
+const KEYS = ['C','G','D','A','E','B','F#','Db','Ab','Eb','Bb','F'];
+const NOTE_SEMITONE = {C:0,'C#':1,Db:1,D:2,'D#':3,Eb:3,E:4,F:5,'F#':6,Gb:6,G:7,'G#':8,Ab:8,A:9,'A#':10,Bb:10,B:11};
+const NATIVE_ROOT = { C:0, A:9, G:7, E:4, D:2 };
+const SHAPE_COLOR = { C:'#C1633E', A:'#6B8A6E', G:'#B98B3E', E:'#7C7AA6', D:'#4F8FA6' };
+const SHAPE_ORDER = ['C','A','G','E','D'];
+
+// строки: 1 = высокая e (верх) ... 6 = низкая E (низ), лады относительно "родного" открытого аккорда
+const SHAPES = {
+  C: [ {string:5, fret:3, role:'R'}, {string:4, fret:2, role:'3'}, {string:3, fret:0, role:'5'},
+       {string:2, fret:1, role:'R'}, {string:1, fret:0, role:'3'} ],
+  A: [ {string:5, fret:0, role:'R'}, {string:4, fret:2, role:'5'}, {string:3, fret:2, role:'R'},
+       {string:2, fret:2, role:'3'}, {string:1, fret:0, role:'5'} ],
+  G: [ {string:6, fret:3, role:'R'}, {string:5, fret:2, role:'3'}, {string:4, fret:0, role:'5'},
+       {string:3, fret:0, role:'R'}, {string:2, fret:0, role:'3'}, {string:1, fret:3, role:'R'} ],
+  E: [ {string:6, fret:0, role:'R'}, {string:5, fret:2, role:'5'}, {string:4, fret:2, role:'R'},
+       {string:3, fret:1, role:'3'}, {string:2, fret:0, role:'5'}, {string:1, fret:0, role:'R'} ],
+  D: [ {string:4, fret:0, role:'R'}, {string:3, fret:2, role:'5'}, {string:2, fret:3, role:'R'},
+       {string:1, fret:2, role:'3'} ],
+};
+
+let state = { key: 'C', activeShape: 'all' };
+
+// ---------- layout constants ----------
+const FRETS = 15, STRINGS = 6;
+const marginL = 100, marginR = 40;
+const neckTop = 88, neckBottom = 88 + 5*48; // 6 strings, 5 gaps
+const fretW = (1200 - marginL - marginR) / FRETS;
+const STRING_NAMES = ['e','B','G','D','A','E']; // индекс 0 = string1 (верх)
+
+function stringY(s){ return neckTop + (s-1) * ((neckBottom-neckTop)/(STRINGS-1)); }
+function fretLineX(n){ return marginL + n*fretW; }
+function noteX(fret){ return fret === 0 ? marginL - 34 : fretLineX(fret-1) + fretW/2; }
+
+function shapeShift(shapeName, keySemitone){
+  return ((keySemitone - NATIVE_ROOT[shapeName]) % 12 + 12) % 12;
+}
+
+// ---------- render fretboard ----------
+function renderFretboard(){
+  const svg = document.getElementById('fretboardSvg');
+  const keySemitone = NOTE_SEMITONE[state.key];
+  let html = '';
+
+  // string lines
+  for (let s=1; s<=STRINGS; s++){
+    const y = stringY(s);
+    html += `<line x1="${marginL-34}" y1="${y}" x2="${fretLineX(FRETS)}" y2="${y}" stroke="#C9C4B7" stroke-width="1.5"/>`;
+    html += `<text x="${marginL-56}" y="${y+5}" font-family="JetBrains Mono, monospace" font-size="14" fill="#8C8678" text-anchor="middle">${STRING_NAMES[s-1]}</text>`;
+  }
+  // fret lines
+  for (let f=0; f<=FRETS; f++){
+    const x = fretLineX(f);
+    html += `<line x1="${x}" y1="${neckTop}" x2="${x}" y2="${neckBottom}" stroke="${f===0?'#201E1A':'#C9C4B7'}" stroke-width="${f===0?4:1.5}"/>`;
+  }
+  // inlays
+  [3,5,7,9,15].forEach(f=>{
+    const x = noteX(f);
+    html += `<circle cx="${x}" cy="${(neckTop+neckBottom)/2}" r="5" fill="#DCD6C8"/>`;
+  });
+  const x12 = noteX(12);
+  html += `<circle cx="${x12}" cy="${neckTop + (neckBottom-neckTop)/2 - 16}" r="5" fill="#DCD6C8"/>`;
+  html += `<circle cx="${x12}" cy="${neckTop + (neckBottom-neckTop)/2 + 16}" r="5" fill="#DCD6C8"/>`;
+
+  // fret numbers
+  for (let f=1; f<=FRETS; f++){
+    html += `<text x="${noteX(f)}" y="${neckBottom+28}" font-family="JetBrains Mono, monospace" font-size="13" fill="#8C8678" text-anchor="middle">${f}</text>`;
+  }
+
+  // shape zone labels
+  SHAPE_ORDER.forEach(name => {
+    const shift = shapeShift(name, keySemitone);
+    const frets = SHAPES[name].map(n => n.fret + shift);
+    const minF = Math.min(...frets), maxF = Math.max(...frets);
+    const cx = (noteX(minF) + noteX(maxF)) / 2;
+    const dim = state.activeShape !== 'all' && state.activeShape !== name;
+    html += `<g opacity="${dim ? 0.25 : 1}">
+      <rect x="${cx-16}" y="${neckTop-38}" width="32" height="26" rx="8" fill="${SHAPE_COLOR[name]}"/>
+      <text x="${cx}" y="${neckTop-20}" font-family="Inter, sans-serif" font-weight="800" font-size="14" fill="#fff" text-anchor="middle">${name}</text>
+    </g>`;
+  });
+
+  // note markers
+  SHAPE_ORDER.forEach(name => {
+    const shift = shapeShift(name, keySemitone);
+    const dim = state.activeShape !== 'all' && state.activeShape !== name;
+    SHAPES[name].forEach(n => {
+      const fret = n.fret + shift;
+      const cx = noteX(fret);
+      const cy = stringY(n.string);
+      const color = n.role === 'R' ? '#C1633E'
+                  : n.role === '3' ? '#B98B3E' : '#6B8A6E';
+      html += `<g opacity="${dim ? 0.22 : 1}">
+        <circle cx="${cx}" cy="${cy}" r="15" fill="${color}" stroke="#fff" stroke-width="2.5"/>
+        <text x="${cx}" y="${cy+5}" font-family="JetBrains Mono, monospace" font-weight="700" font-size="13" fill="#fff" text-anchor="middle">${n.role}</text>
+      </g>`;
+    });
+  });
+
+  svg.innerHTML = html;
+}
+
+// ---------- UI: key selector ----------
+function renderKeys(){
+  const row = document.getElementById('keyRow');
+  row.innerHTML = '';
+  KEYS.forEach(k => {
+    const btn = document.createElement('button');
+    btn.className = 'key-btn' + (k === state.key ? ' active' : '');
+    btn.textContent = k;
+    btn.addEventListener('click', () => {
+      state.key = k;
+      document.getElementById('keyLabel').textContent = `${k} · мажор`;
+      renderKeys();
+      renderFretboard();
+    });
+    row.appendChild(btn);
+  });
+}
+
+// ---------- UI: shape filter ----------
+function renderShapeFilter(){
+  const wrap = document.getElementById('shapeFilter');
+  wrap.innerHTML = '';
+  const allBtn = document.createElement('button');
+  allBtn.className = 'shape-chip' + (state.activeShape === 'all' ? ' active' : '');
+  allBtn.textContent = 'Все';
+  allBtn.style.setProperty('--shape-color', '#201E1A');
+  allBtn.addEventListener('click', () => { state.activeShape = 'all'; renderShapeFilter(); renderFretboard(); });
+  wrap.appendChild(allBtn);
+
+  SHAPE_ORDER.forEach(name => {
+    const btn = document.createElement('button');
+    btn.className = 'shape-chip' + (state.activeShape === name ? ' active' : '');
+    btn.textContent = name;
+    btn.style.setProperty('--shape-color', SHAPE_COLOR[name]);
+    btn.addEventListener('click', () => {
+      state.activeShape = (state.activeShape === name) ? 'all' : name;
+      renderShapeFilter();
+      renderFretboard();
+    });
+    wrap.appendChild(btn);
+  });
+}
+
+// ---------- init ----------
+renderKeys();
+renderShapeFilter();
+renderFretboard();
+</script>
+</body>
+</html>
