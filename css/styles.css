@@ -331,3 +331,63 @@ main.screens {
 .seq-option:last-child { border-bottom: none; }
 .seq-option:hover { background: var(--card2); }
 .seq-option .seq-name { font-size: 13px; font-weight: 700; }
+
+/* ---------- План: таймер занятия ---------- */
+
+.timer-panel { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+#timerDisplay { font-size: 56px; font-weight: 700; letter-spacing: 0.02em; color: var(--text); }
+.timer-controls { display: flex; gap: 10px; width: 100%; max-width: 320px; }
+.timer-btn {
+  flex: 1; height: 52px; border-radius: 14px; border: none;
+  font-weight: 800; font-size: 15px;
+  transition: transform 0.08s, background 0.15s;
+}
+.timer-start { background: var(--accent); color: var(--accent-contrast); }
+.timer-start.running { background: var(--accent-dark); }
+.timer-reset { background: var(--card2); color: var(--text); border: 1px solid var(--line); }
+.timer-btn:active { transform: scale(0.97); }
+.total-time { font-size: 13px; color: var(--muted); }
+
+/* ---------- План: прогресс и список дней ---------- */
+
+.plan-progress { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 18px; }
+.plan-progress b { color: var(--text); }
+
+.week-label {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); font-weight: 700; margin: 6px 4px 2px;
+}
+
+#planList { display: flex; flex-direction: column; gap: 8px; }
+
+.day-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; }
+.day-header {
+  width: 100%; display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; background: none; border: none; cursor: pointer; text-align: left;
+}
+.day-header:hover { background: var(--card2); }
+.day-check { flex-shrink: 0; width: 22px; height: 22px; }
+.day-check input { width: 22px; height: 22px; accent-color: var(--accent); cursor: pointer; }
+.day-num { flex-shrink: 0; font-weight: 800; font-size: 13px; color: var(--accent); min-width: 58px; }
+.day-teaser { flex: 1; font-size: 14px; font-weight: 600; color: var(--text); }
+.day-chevron { flex-shrink: 0; color: var(--muted); font-size: 12px; transition: transform 0.15s; }
+.day-card.open .day-chevron { transform: rotate(180deg); }
+.day-card.done .day-teaser { color: var(--muted); text-decoration: line-through; }
+
+.day-body { display: none; padding: 0 16px 18px 52px; }
+.day-card.open .day-body { display: block; }
+
+.block-label {
+  display: inline-block; font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em;
+  color: var(--muted); font-weight: 700; margin-bottom: 4px; margin-top: 12px;
+}
+.block-text { font-size: 14px; line-height: 1.5; margin: 0; }
+.block-text a { color: var(--accent); font-weight: 700; text-decoration: none; border-bottom: 1px dashed var(--accent); }
+.block-text a:hover { border-bottom-style: solid; }
+.block-note { font-size: 12px; color: var(--muted); font-style: italic; margin-top: 4px; }
+
+.day-result {
+  margin-top: 14px; padding: 12px 14px; border-radius: 12px;
+  background: #F1DFD4; color: var(--accent-dark);
+  font-size: 14px; font-weight: 700;
+}
