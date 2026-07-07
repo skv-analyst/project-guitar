@@ -3,7 +3,7 @@
 // версию с сервера (и обновляем кэш), офлайн — отдаём то, что закэшировано.
 // Так апдейты на GitHub Pages подхватываются сами, без ручного бампа версии
 // (бампаем CACHE_NAME только чтобы принудительно почистить старый кэш).
-var CACHE_NAME = "guitar-practice-v3";
+var CACHE_NAME = "guitar-practice-v4";
 
 var ASSETS = [
   "./",
@@ -15,10 +15,12 @@ var ASSETS = [
   "./js/fretboard.js",
   "./js/fretboard-screen.js",
   "./js/rhythm-screen.js",
+  "./js/plan-screen.js",
   "./js/data/caged.js",
   "./js/data/boxes.js",
   "./js/data/sequences.js",
   "./js/data/progressions.js",
+  "./js/data/plan.js",
   "./icons/icon-192.png",
   "./icons/icon-512.png",
   "./icons/apple-touch-icon.png"
