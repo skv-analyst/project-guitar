@@ -1,12 +1,11 @@
 /*
- * Экран "Ритм" — метроном + генератор ритмических паттернов на единой
- * 16-ячеечной сетке такта (16-я длительность — минимальная единица),
- * перенесено из fretflow-rhythm-screen.html.
+ * Экран "Метроном" — метроном + сетка такта из 16 ячеек (16-я длительность —
+ * минимальная единица), на которой подсвечиваются доли в такт кликам.
  *
  * Такт всегда 4 доли; переключатель "signature" — это не размер такта,
  * а разрешение клика метронома внутри доли: 4/4 = клик на каждую долю,
  * 4/8 = клик на каждую восьмую, 4/16 = клик на каждую шестнадцатую.
- * Подсветка бьёт по тем же 16 ячейкам, где рисуется паттерн.
+ * Подсветка закрашивает те ячейки сетки, что приходятся на текущий клик.
  *
  * Метроном намеренно продолжает играть при переключении вкладок (как и
  * раньше) — экраны скрываются через CSS display:none, а не удаляются из
@@ -15,59 +14,20 @@
 (function () {
   "use strict";
 
-  var DURATION_POOL = [
-    { key: "quarter", spans: [4] },
-    { key: "two-eighths", spans: [2, 2] },
-    { key: "sixteenths", spans: [1, 1, 1, 1] },
-    { key: "eighth-2-16", spans: [2, 1, 1] }
-  ];
-
-  var beats = ["quarter", "two-eighths", "sixteenths", "quarter"];
-
   var bpmValueEl = document.getElementById("bpmValue");
   var startBtn = document.getElementById("startBtn");
   var tapBtn = document.getElementById("tapBtn");
   var accentSwitchEl = document.getElementById("accentSwitch");
   var hlLayerEl = document.getElementById("hlLayer");
-  var noteLayerEl = document.getElementById("noteLayer");
   var barTableEl = document.getElementById("barTable");
-  var generateBtn = document.getElementById("generateBtn");
-
-  function flagPath(x, y) {
-    return '<path d="M ' + x + " " + y + " C " + (x + 9) + " " + (y + 3) + ", " + (x + 10) + " " + (y + 11) + ", " + (x + 1) + " " + (y + 15) +
-      " C " + (x + 7) + " " + (y + 9) + ", " + (x + 5) + " " + (y + 4) + ", " + x + " " + y + ' Z"/>';
-  }
-
-  // вид ноты определяется ТОЛЬКО шириной в ячейках: 4=четверть, 2=восьмая, 1=шестнадцатая
-  function noteGlyphSVG(span) {
-    var noteHead = '<ellipse cx="9" cy="50" rx="6.5" ry="4.6" transform="rotate(-18 9 50)"/>';
-    var stem = '<rect x="14.5" y="8" width="2.2" height="42"/>';
-    var flags = "";
-    if (span <= 2) flags += flagPath(16.7, 8);
-    if (span === 1) flags += flagPath(16.7, 19);
-    return '<svg viewBox="0 0 30 60" class="note-glyph" preserveAspectRatio="xMinYMid meet">' + noteHead + stem + flags + "</svg>";
-  }
 
   function renderBar() {
     hlLayerEl.innerHTML = "";
-    noteLayerEl.innerHTML = "";
-
     for (var s = 0; s < 16; s++) {
       var slot = document.createElement("div");
       slot.className = "hl-slot";
       hlLayerEl.appendChild(slot);
     }
-
-    beats.forEach(function (key) {
-      var pattern = DURATION_POOL.filter(function (p) { return p.key === key; })[0];
-      pattern.spans.forEach(function (span) {
-        var cell = document.createElement("div");
-        cell.className = "note-cell";
-        cell.style.gridColumn = "span " + span;
-        cell.innerHTML = noteGlyphSVG(span);
-        noteLayerEl.appendChild(cell);
-      });
-    });
 
     barTableEl.querySelectorAll(".beat-divider").forEach(function (el) { el.remove(); });
     [4, 8, 12].forEach(function (s) {
@@ -76,13 +36,6 @@
       div.style.left = (s / 16 * 100) + "%";
       barTableEl.appendChild(div);
     });
-  }
-
-  function generateRhythm() {
-    beats = Array.from({ length: 4 }, function () {
-      return DURATION_POOL[Math.floor(Math.random() * DURATION_POOL.length)].key;
-    });
-    renderBar();
   }
 
   // ---------- metronome state ----------
@@ -208,7 +161,6 @@
 
   startBtn.addEventListener("click", startStop);
   tapBtn.addEventListener("click", tapTempo);
-  generateBtn.addEventListener("click", generateRhythm);
   accentSwitchEl.addEventListener("click", function () {
     accentFirst = !accentFirst;
     accentSwitchEl.classList.toggle("on", accentFirst);
