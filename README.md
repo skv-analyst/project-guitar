@@ -41,7 +41,7 @@ js/
     boxes.js                 — 7 боксов лада (статические, проверены вручную на гитаре)
     progressions.js          — аккордовые прогрессии (ступенями гаммы)
     sequences.js              — мелодические секвенции для отработки в BOX-режиме
-manifest.json, service-worker.js, icons/ — PWA
+manifest.json, service-worker.js, icons/ — PWA (icons/icon-source.png — исходник иконки 1254×1254, из него нарезаны 192/512/180)
 tests/theory.test.js        — unit-тесты транспонизации (node tests/theory.test.js)
 reference/                  — исходные дизайн/логические референсы (HTML-прототипы),
                                по которым переделан текущий дизайн; не часть приложения
