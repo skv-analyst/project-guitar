@@ -31,9 +31,13 @@ button {
   cursor: pointer;
 }
 
+[hidden] { display: none !important; }
+
+/* в PWA (status bar black-translucent) страница начинается под системной
+   строкой — отступаем на её высоту, в обычном браузере env() = 0 */
 header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px;
+  padding: calc(16px + env(safe-area-inset-top)) calc(20px + env(safe-area-inset-right)) 16px calc(20px + env(safe-area-inset-left));
   border-bottom: 1px solid var(--line);
   flex-wrap: wrap;
   gap: 12px;
@@ -77,12 +81,57 @@ main.screens {
 
 /* ---------- Метроном ---------- */
 
+/* порядок в разметке: [секундомер, сетка] + метроном — вертикально идут
+   подряд, горизонтально левая колонка / метроном справа */
 .rhythm-layout {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
+.rhythm-col { display: flex; flex-direction: column; }
 .rhythm-layout .panel { display: flex; flex-direction: column; }
+
+/* ---------- Секундомер ---------- */
+
+.session-display {
+  background: var(--card2);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 20px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.session-times { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.session-time { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.session-label {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); font-weight: 700;
+}
+.session-value { font-size: 40px; font-weight: 700; line-height: 1.1; color: var(--text); }
+
+.session-controls { display: flex; gap: 10px; }
+.session-controls .start-btn { height: 52px; }
+.session-stop-btn {
+  flex: 0 0 34%; height: 52px; border-radius: 16px;
+  background: var(--card); border: 1px solid var(--line);
+  color: var(--text); font-weight: 800; font-size: 15px; letter-spacing: 0.02em;
+}
+.session-stop-btn:active { transform: scale(0.98); }
+
+.stage-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.stage-list:empty { display: none; }
+.stage-chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 10px 4px 4px; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line);
+  font-family: 'JetBrains Mono', monospace; font-size: 12px; font-weight: 700;
+}
+.stage-num {
+  min-width: 20px; height: 20px; border-radius: 999px; padding: 0 5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: var(--card2); color: var(--muted); font-size: 11px;
+}
+.stage-chip.current { border-color: var(--accent); }
+.stage-chip.current .stage-num { background: var(--accent); color: var(--accent-contrast); }
 
 .bpm-display {
   background: var(--card2);
@@ -161,7 +210,7 @@ main.screens {
   border: 1px solid var(--line);
   border-radius: 20px;
   overflow: hidden;
-  min-height: 220px;
+  min-height: 110px;
   flex: 1;
 }
 .hl-layer {
@@ -184,17 +233,16 @@ main.screens {
   background: var(--line); z-index: 2; pointer-events: none;
 }
 
-@media (min-width: 768px) {
+@media (orientation: landscape) and (min-width: 768px) {
   .rhythm-layout {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 20px;
     align-items: stretch;
   }
+  .rhythm-col { gap: 20px; }
   .rhythm-layout .panel { margin-bottom: 0; }
-}
-@media (min-width: 1200px) {
-  .rhythm-layout { grid-template-columns: 0.85fr 1.15fr; }
+  .rhythm-col .panel-grow { flex: 1; }
 }
 
 /* ---------- Гриф: блок 1 — тональность/режим/ступени ---------- */
@@ -315,3 +363,29 @@ main.screens {
 .seq-option:last-child { border-bottom: none; }
 .seq-option:hover { background: var(--card2); }
 .seq-option .seq-name { font-size: 13px; font-weight: 700; }
+
+/* ---------- История ---------- */
+
+.history-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 14px;
+}
+.history-title { font-weight: 800; font-size: 17px; }
+.history-actions { display: flex; gap: 8px; }
+.history-btn {
+  height: 40px; padding: 0 16px; border-radius: 10px;
+  border: 1px solid var(--line); background: var(--card); color: var(--text);
+  font-weight: 700; font-size: 13px;
+}
+.history-btn:active { background: var(--card2); }
+
+.history-table-wrap { overflow-x: auto; }
+.history-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.history-table th {
+  text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); font-weight: 700; padding: 8px 12px; border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+.history-table td { padding: 12px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.history-table tbody tr:last-child td { border-bottom: none; }
+.history-empty { color: var(--muted); font-size: 14px; text-align: center; padding: 24px 12px 8px; }

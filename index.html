@@ -21,12 +21,42 @@
     <nav class="tabs" role="tablist">
       <button class="tab active" data-screen="rhythm" role="tab" aria-selected="true">Метроном</button>
       <button class="tab" data-screen="fretboard" role="tab" aria-selected="false">Гриф</button>
+      <button class="tab" data-screen="history" role="tab" aria-selected="false">История</button>
     </nav>
   </header>
 
   <main class="screens">
     <section id="screen-rhythm" class="screen active">
       <div class="rhythm-layout">
+
+        <div class="rhythm-col">
+          <div class="panel">
+            <div class="session-display">
+              <div class="session-times">
+                <div class="session-time">
+                  <span class="session-label">Сессия</span>
+                  <span id="sessionTotal" class="session-value mono">0:00:00</span>
+                </div>
+                <div class="session-time">
+                  <span id="stageLabel" class="session-label">Этап</span>
+                  <span id="stageTime" class="session-value mono">00:00</span>
+                </div>
+              </div>
+              <div class="session-controls">
+                <button id="sessionStart" class="start-btn">НАЧАТЬ СЕССИЮ</button>
+                <button id="sessionStage" class="start-btn" hidden>НОВЫЙ ЭТАП</button>
+                <button id="sessionStop" class="session-stop-btn" hidden>СТОП</button>
+              </div>
+              <div id="stageList" class="stage-list"></div>
+            </div>
+          </div>
+
+          <div class="panel panel-grow">
+            <div class="bar-table" id="barTable">
+              <div class="hl-layer" id="hlLayer"></div>
+            </div>
+          </div>
+        </div>
 
         <div class="panel">
           <div class="bpm-display">
@@ -53,12 +83,6 @@
               <span>Акцент на 1</span>
               <div id="accentSwitch" class="switch on"></div>
             </div>
-          </div>
-        </div>
-
-        <div class="panel">
-          <div class="bar-table" id="barTable">
-            <div class="hl-layer" id="hlLayer"></div>
           </div>
         </div>
 
@@ -109,6 +133,28 @@
       </div>
 
     </section>
+
+    <section id="screen-history" class="screen">
+      <div class="panel">
+        <div class="history-head">
+          <div class="history-title">История занятий</div>
+          <div class="history-actions">
+            <button id="exportBtn" class="history-btn">Экспорт</button>
+            <button id="importBtn" class="history-btn">Импорт</button>
+            <input id="importInput" type="file" accept="application/json,.json" hidden>
+          </div>
+        </div>
+        <div class="history-table-wrap">
+          <table class="history-table">
+            <thead>
+              <tr><th>Дата</th><th>Начало</th><th>Конец</th><th>Длительность</th><th>Ср. темп</th></tr>
+            </thead>
+            <tbody id="historyBody"></tbody>
+          </table>
+        </div>
+        <div id="historyEmpty" class="history-empty">Пока пусто — запусти секундомер на вкладке «Метроном», по «Стоп» сессия появится здесь.</div>
+      </div>
+    </section>
   </main>
 </div>
 
@@ -119,6 +165,8 @@
 <script src="js/data/progressions.js"></script>
 <script src="js/fretboard.js"></script>
 <script src="js/rhythm-screen.js"></script>
+<script src="js/history-screen.js"></script>
+<script src="js/session-screen.js"></script>
 <script src="js/fretboard-screen.js"></script>
 <script src="js/app.js"></script>
 <script>

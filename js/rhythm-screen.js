@@ -104,10 +104,18 @@
     hlLayerEl.querySelectorAll(".hl-slot").forEach(function (s) { s.classList.remove("active"); });
   }
 
+  // Секундомер (session-screen.js) по этим событиям считает средний темп
+  // сессии: сколько времени метроном реально играл и на каком BPM.
+  function notifyState() {
+    window.gpMetronome = { playing: playing, bpm: bpm };
+    document.dispatchEvent(new CustomEvent("gp:metronome", { detail: window.gpMetronome }));
+  }
+
   function setBpm(value) {
     bpm = Math.min(240, Math.max(30, value));
     bpmValueEl.textContent = String(bpm);
     localStorage.setItem("gp:bpm", String(bpm));
+    notifyState();
   }
 
   function startStop() {
@@ -126,6 +134,7 @@
       clearTimeout(schedulerTimer);
       clearHighlight();
     }
+    notifyState();
   }
 
   var tapTimes = [];
